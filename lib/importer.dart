@@ -560,7 +560,9 @@ ImportResult parseBackup(String text) {
           (e) => WorkoutProgram.fromJson(Map<String, dynamic>.from(e as Map)),
         )
         .toList(),
-    settings: (j['settings'] as Map?)?.cast<String, dynamic>(),
+    settings: (j['settings'] is Map && (j['settings'] as Map).isNotEmpty)
+        ? (j['settings'] as Map).cast<String, dynamic>()
+        : null,
   );
 }
 

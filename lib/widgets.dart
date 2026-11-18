@@ -378,83 +378,112 @@ class SampleLineChart extends StatelessWidget {
   }
 }
 
-class WeeklyBarChart extends StatelessWidget {
-  final List<double> km;
-  const WeeklyBarChart({super.key, required this.km});
+/// Dönem grafiği: her çubuk bir gün / ay / yıl.
+class PeriodBarChart extends StatelessWidget {
+  final List<double> values;
+  final List<String> labels;
+  final int highlight; // bugünün çubuğu (-1 yok)
+  final String Function(double) format;
+
+  const PeriodBarChart({
+    super.key,
+    required this.values,
+    required this.labels,
+    this.highlight = -1,
+    required this.format,
+  });
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    const days = ['Pt', 'Sa', 'Ça', 'Pe', 'Cu', 'Ct', 'Pz'];
-    final today = DateTime.now().weekday - 1;
-    final maxY = km.fold(0.0, (a, b) => b > a ? b : a);
-    return SizedBox(
-      height: 140,
-      child: BarChart(
-        BarChartData(
-          maxY: maxY < 1 ? 5 : maxY * 1.2,
-          gridData: const FlGridData(show: false),
-          borderData: FlBorderData(show: false),
-          barTouchData: BarTouchData(
-            touchTooltipData: BarTouchTooltipData(
-              getTooltipItem: (g, gi, rod, ri) => BarTooltipItem(
-                '${rod.toY.toStringAsFixed(1)} km',
-                TextStyle(color: cs.primary, fontWeight: FontWeight.w600),
-              ),
-            ),
-          ),
-          titlesData: FlTitlesData(
-            topTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false),
-            ),
-            rightTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false),
-            ),
-            leftTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false),
-            ),
-            bottomTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                reservedSize: 22,
-                getTitlesWidget: (v, m) => Text(
-                  days[v.toInt()],
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: v.toInt() == today
-                        ? FontWeight.w700
-                        : FontWeight.w400,
-                    color: v.toInt() == today
-                        ? cs.primary
-                        : cs.onSurfaceVariant,
+    final n = values.length;
+    final maxY = values.fold(0.0, (a, b) => b > a ? b : a);
+    final top = maxY <= 0 ? 1.0 : maxY * 1.2;
+    // Çok çubuk varsa etiketleri seyrelt (ay görünümünde 1, 5, 10, ...)
+    final every = n > 20 ? 5 : (n > 12 ? 2 : 1);
+    return LayoutBuilder(
+      builder: (context, c) {
+        final barW = ((c.maxWidth / n) * 0.6).clamp(3.0, 22.0);
+        return SizedBox(
+          height: 160,
+          child: BarChart(
+            BarChartData(
+              maxY: top,
+              gridData: const FlGridData(show: false),
+              borderData: FlBorderData(show: false),
+              alignment: BarChartAlignment.spaceAround,
+              barTouchData: BarTouchData(
+                touchTooltipData: BarTouchTooltipData(
+                  getTooltipItem: (g, gi, rod, ri) => BarTooltipItem(
+                    '${labels[g.x]}\n${format(rod.toY)}',
+                    TextStyle(color: cs.primary, fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
+              titlesData: FlTitlesData(
+                topTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                rightTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                leftTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: 22,
+                    getTitlesWidget: (v, m) {
+                      final i = v.toInt();
+                      if (i < 0 || i >= n) return const SizedBox();
+                      final show =
+                          every == 1 ||
+                          i == 0 ||
+                          (i + 1) % every == 0 ||
+                          i == highlight;
+                      if (!show) return const SizedBox();
+                      return Text(
+                        labels[i],
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: i == highlight
+                              ? FontWeight.w700
+                              : FontWeight.w400,
+                          color: i == highlight
+                              ? cs.primary
+                              : cs.onSurfaceVariant,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+              barGroups: [
+                for (var i = 0; i < n; i++)
+                  BarChartGroupData(
+                    x: i,
+                    barRods: [
+                      BarChartRodData(
+                        toY: values[i],
+                        width: barW,
+                        color: i == highlight
+                            ? cs.primary
+                            : cs.primary.withValues(alpha: 0.55),
+                        borderRadius: BorderRadius.circular(barW / 3),
+                        backDrawRodData: BackgroundBarChartRodData(
+                          show: true,
+                          toY: top,
+                          color: cs.surfaceContainerHighest,
+                        ),
+                      ),
+                    ],
+                  ),
+              ],
             ),
           ),
-          barGroups: [
-            for (var i = 0; i < 7; i++)
-              BarChartGroupData(
-                x: i,
-                barRods: [
-                  BarChartRodData(
-                    toY: km[i],
-                    width: 18,
-                    color: i == today
-                        ? cs.primary
-                        : cs.primary.withValues(alpha: 0.5),
-                    borderRadius: BorderRadius.circular(6),
-                    backDrawRodData: BackgroundBarChartRodData(
-                      show: true,
-                      toY: maxY < 1 ? 5 : maxY * 1.2,
-                      color: cs.surfaceContainerHighest,
-                    ),
-                  ),
-                ],
-              ),
-          ],
-        ),
-      ),
+        );
+      },
     );
   }
 }

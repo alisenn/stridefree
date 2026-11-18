@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'models.dart';
 import 'screens/history.dart';
 import 'screens/home.dart';
 import 'screens/programs.dart';
@@ -63,6 +64,44 @@ class RootNav extends StatefulWidget {
 
 class _RootNavState extends State<RootNav> {
   int index = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkRecovery());
+  }
+
+  /// Uygulama antrenman sırasında kapandıysa yarım kalan antrenmanı kurtar.
+  Future<void> _checkRecovery() async {
+    final wc = context.read<WorkoutController>();
+    final s = wc.recoverable;
+    if (s == null || !mounted) return;
+    final save = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (c) => AlertDialog(
+        icon: const Icon(Icons.restore),
+        title: const Text('Yarım kalan antrenman'),
+        content: Text(
+          'Uygulama antrenman sırasında kapanmış. Son kaydedilen hâli:\n\n'
+          '${s.title}\n${fmtDuration(s.durationSec)} · '
+          '${s.distanceKm.toStringAsFixed(2)} km · ${s.kcal.round()} kcal',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(c, false),
+            child: const Text('Sil'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(c, true),
+            child: const Text('Geçmişe kaydet'),
+          ),
+        ],
+      ),
+    );
+    wc.resolveRecovery(save: save ?? false);
+  }
+
   static const pages = [
     HomeScreen(),
     ProgramsScreen(),

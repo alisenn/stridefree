@@ -68,6 +68,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
   @override
   Widget build(BuildContext context) {
     final wc = context.watch<WorkoutController>();
+    final dev = context.watch<DeviceManager>();
     final settings = context.watch<SettingsStore>();
     final cs = Theme.of(context).colorScheme;
 
@@ -192,6 +193,36 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                   ],
                   const SizedBox(height: 12),
 
+                  if (wc.pausedByDisconnect || dev.reconnecting)
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: cs.errorContainer,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            dev.reconnecting
+                                ? Icons.bluetooth_searching
+                                : Icons.bluetooth_disabled,
+                            color: cs.onErrorContainer,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              dev.reconnecting
+                                  ? 'Bant bağlantısı koptu. Antrenman duraklatıldı ve kaydedildi; yeniden bağlanılıyor…'
+                                  : dev.connected
+                                  ? 'Bağlantı geri geldi. Devam etmek için "Devam"a basın.'
+                                  : 'Banda bağlanılamadı. Antrenmanınız kayıtlı; "Bitir" ile kaydedebilirsiniz.',
+                              style: TextStyle(color: cs.onErrorContainer),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   // ---- büyük göstergeler ----
                   Row(
                     children: [
@@ -260,7 +291,18 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                         paused ? 'Devam' : 'Duraklat',
                         style: const TextStyle(fontSize: 18),
                       ),
-                      onPressed: wc.togglePause,
+                      onPressed: () async {
+                        final ok = await wc.togglePause();
+                        if (!ok && context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Koşu bandı bağlı değil. Bağlantı gelince devam edebilirsiniz.',
+                              ),
+                            ),
+                          );
+                        }
+                      },
                     ),
                   ),
                 ),

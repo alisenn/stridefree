@@ -4,10 +4,12 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart' show AppLifecycleListener;
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
+import 'background.dart';
 import 'devices.dart';
 import 'models.dart';
 
@@ -229,6 +231,11 @@ class DeviceManager extends ChangeNotifier {
   String? error;
   bool busy = false;
 
+  /// Antrenman sürerken true: bağlantı koparsa otomatik yeniden bağlanmayı dener.
+  bool keepAlive = false;
+  bool reconnecting = false;
+  Future<Treadmill> Function()? _lastMake;
+
   final _dataCtrl = StreamController<TreadmillData>.broadcast();
   Stream<TreadmillData> get data => _dataCtrl.stream;
 
@@ -249,29 +256,55 @@ class DeviceManager extends ChangeNotifier {
     ),
   );
 
-  Future<void> _attach(Future<Treadmill> Function() make) async {
+  Future<bool> _attach(Future<Treadmill> Function() make) async {
     busy = true;
     error = null;
     notifyListeners();
+    var ok = false;
     try {
       await disconnectTreadmill();
       final t = await make();
       treadmill = t;
+      _lastMake = t.isDemo ? null : make;
       _dataSub = t.data.listen((d) {
         last = d;
         _dataCtrl.add(d);
         notifyListeners();
       });
-      _connSub = t.connection.listen((ok) {
-        if (!ok && treadmill == t) {
-          error = 'Koşu bandı bağlantısı koptu.';
+      _connSub = t.connection.listen((connected) {
+        if (!connected && treadmill == t) {
           _clearTreadmill();
+          if (keepAlive && _lastMake != null) {
+            _reconnectLoop();
+          } else {
+            error = 'Koşu bandı bağlantısı koptu.';
+            notifyListeners();
+          }
         }
       });
+      ok = true;
     } catch (e) {
       error = e.toString().replaceFirst('Exception: ', '');
     }
     busy = false;
+    notifyListeners();
+    return ok;
+  }
+
+  /// Antrenman sırasında bağlantı koparsa 2 dakika boyunca 5 sn arayla yeniden dener.
+  Future<void> _reconnectLoop() async {
+    if (reconnecting) return;
+    reconnecting = true;
+    error = 'Bağlantı koptu, yeniden bağlanılıyor…';
+    notifyListeners();
+    final make = _lastMake!;
+    for (var i = 0; i < 24 && keepAlive && treadmill == null; i++) {
+      await Future.delayed(const Duration(seconds: 5));
+      if (!keepAlive || treadmill != null) break;
+      if (await _attach(make)) break;
+    }
+    reconnecting = false;
+    error = treadmill == null ? 'Koşu bandına yeniden bağlanılamadı.' : null;
     notifyListeners();
   }
 
@@ -320,12 +353,22 @@ class DeviceManager extends ChangeNotifier {
 // ---------------------------------------------------------------------------
 enum RunState { idle, countdown, running, paused }
 
+const _kActiveWorkout = 'activeWorkout';
+
 class WorkoutController extends ChangeNotifier {
   final DeviceManager dev;
   final SettingsStore settings;
   final HistoryStore history;
+  late final AppLifecycleListener _lifecycle;
 
-  WorkoutController(this.dev, this.settings, this.history);
+  WorkoutController(this.dev, this.settings, this.history) {
+    // Uygulama arka plana giderken anında kaydet.
+    _lifecycle = AppLifecycleListener(
+      onHide: _autosave,
+      onPause: _autosave,
+      onDetach: _autosave,
+    );
+  }
 
   RunState state = RunState.idle;
   int countdown = 0;
@@ -342,7 +385,11 @@ class WorkoutController extends ChangeNotifier {
   int segmentIndex = -1;
   final List<double> speedSamples = [];
   final List<int> hrSamples = [];
-  int _hrSum = 0, _hrCount = 0, _maxHr = 0;
+  double _hrSum = 0, _hrWeight = 0;
+  int _maxHr = 0;
+
+  /// Bağlantı kopması yüzünden otomatik duraklatıldı
+  bool pausedByDisconnect = false;
 
   Timer? _timer;
   StreamSubscription? _dataSub;
@@ -350,12 +397,26 @@ class WorkoutController extends ChangeNotifier {
   bool _usingDeviceDist = false;
   DateTime? _startTime;
 
+  // Süre gerçek saatten hesaplanır: uygulama bir süre uyusa bile kayma olmaz.
+  double _accumSec = 0;
+  DateTime? _runningSince;
+  DateTime? _lastTick;
+  int _nextSampleAt = 5;
+  int _lastSavedAt = 0;
+
   double get speed => dev.last.speedKmh ?? 0;
   double get incline => dev.last.inclinePct ?? targetIncline;
   int? get hr => dev.heartRate;
   bool get active => state != RunState.idle;
 
   double? get paceMinPerKm => speed < 0.5 ? null : 60 / speed;
+
+  int _elapsedNow() {
+    final run = _runningSince == null
+        ? 0.0
+        : DateTime.now().difference(_runningSince!).inMilliseconds / 1000;
+    return (_accumSec + run).floor();
+  }
 
   Segment? get currentSegment =>
       (program != null &&
@@ -425,15 +486,30 @@ class WorkoutController extends ChangeNotifier {
     segmentIndex = -1;
     speedSamples.clear();
     hrSamples.clear();
-    _hrSum = _hrCount = _maxHr = 0;
+    _hrSum = _hrWeight = 0;
+    _maxHr = 0;
     _lastDeviceDist = null;
     _usingDeviceDist = false;
+    _accumSec = 0;
+    _runningSince = null;
+    _lastTick = null;
+    _nextSampleAt = 5;
+    _lastSavedAt = 0;
+    pausedByDisconnect = false;
   }
 
   Future<void> _startRunning() async {
-    final t = dev.treadmill!;
+    final t = dev.treadmill;
+    if (t == null) {
+      finish();
+      return;
+    }
     _startTime = DateTime.now();
+    _runningSince = _startTime;
+    _lastTick = _startTime;
     state = RunState.running;
+    dev.keepAlive = true;
+    WorkoutBackground.start(title, 'Antrenman başladı');
     await t.start();
     if (program != null) {
       _applySegment(0);
@@ -451,7 +527,7 @@ class WorkoutController extends ChangeNotifier {
     if (dist != null) {
       if (state == RunState.running && _lastDeviceDist != null) {
         final delta = dist - _lastDeviceDist!;
-        if (delta >= 0 && delta < 60) {
+        if (delta >= 0 && delta < 5000) {
           distanceM += delta;
           elevationM += delta * (incline / 100);
           _usingDeviceDist = true;
@@ -462,24 +538,57 @@ class WorkoutController extends ChangeNotifier {
   }
 
   void _tick() {
+    if (state == RunState.paused) {
+      notifyListeners();
+      return;
+    }
     if (state != RunState.running) return;
-    elapsed++;
+
+    // Bant bağlantısı koptuysa otomatik duraklat (süre ve mesafe saymayı bırak).
+    if (dev.treadmill == null) {
+      _pauseClock();
+      state = RunState.paused;
+      pausedByDisconnect = true;
+      _autosave();
+      HapticFeedback.heavyImpact();
+      notifyListeners();
+      return;
+    }
+
+    final now = DateTime.now();
+    // Uygulama bir süre uyuduysa aradaki süreyi de hesaba kat (en fazla 10 dk).
+    final dt = (now.difference(_lastTick ?? now).inMilliseconds / 1000).clamp(
+      0.0,
+      600.0,
+    );
+    _lastTick = now;
+    elapsed = _elapsedNow();
+
     final v = speed;
     if (!_usingDeviceDist) {
-      distanceM += v / 3.6;
-      elevationM += v / 3.6 * (incline / 100);
+      distanceM += v / 3.6 * dt;
+      elevationM += v / 3.6 * dt * (incline / 100);
     }
-    kcal += _kcalPerSec(v, incline);
+    kcal += _kcalPerSec(v, incline) * dt;
     if (v > maxSpeed) maxSpeed = v;
     final h = hr;
     if (h != null && h > 0) {
-      _hrSum += h;
-      _hrCount++;
+      _hrSum += h * dt;
+      _hrWeight += dt;
       if (h > _maxHr) _maxHr = h;
     }
-    if (elapsed % 5 == 0) {
+    while (elapsed >= _nextSampleAt) {
       speedSamples.add(v);
       hrSamples.add(h ?? 0);
+      _nextSampleAt += 5;
+    }
+    if (elapsed - _lastSavedAt >= 5) {
+      _lastSavedAt = elapsed;
+      _autosave();
+      WorkoutBackground.update(
+        title,
+        '${fmtDuration(elapsed)} · ${(distanceM / 1000).toStringAsFixed(2)} km · ${kcal.round()} kcal',
+      );
     }
 
     if (program != null) {
@@ -509,6 +618,20 @@ class WorkoutController extends ChangeNotifier {
       }
     }
     notifyListeners();
+  }
+
+  void _pauseClock() {
+    if (_runningSince != null) {
+      _accumSec +=
+          DateTime.now().difference(_runningSince!).inMilliseconds / 1000;
+      _runningSince = null;
+    }
+    elapsed = _accumSec.floor();
+  }
+
+  void _resumeClock() {
+    _runningSince = DateTime.now();
+    _lastTick = _runningSince;
   }
 
   /// ACSM metabolik denklemleri – kilonuza göre kalori
@@ -554,57 +677,114 @@ class WorkoutController extends ChangeNotifier {
   void nudgeSpeed(int dir) => setSpeed(targetSpeed + dir * settings.speedStep);
   void nudgeIncline(int dir) => setIncline(targetIncline + dir);
 
-  Future<void> togglePause() async {
+  /// Duraklat / devam. Bant bağlı değilse devam edemez (false döner).
+  Future<bool> togglePause() async {
     final t = dev.treadmill;
-    if (t == null) return;
     if (state == RunState.running) {
+      _pauseClock();
       state = RunState.paused;
-      await t.pause();
-    } else if (state == RunState.paused) {
+      _autosave();
+      notifyListeners();
+      await t?.pause();
+      return true;
+    }
+    if (state == RunState.paused) {
+      if (t == null) return false;
+      pausedByDisconnect = false;
       state = RunState.running;
+      _resumeClock();
+      notifyListeners();
       await t.start();
       await t.setSpeed(targetSpeed);
+      if (targetIncline != 0) await t.setIncline(targetIncline);
+      return true;
     }
-    notifyListeners();
+    return false;
   }
+
+  WorkoutSession? _snapshot() {
+    if (_startTime == null) return null;
+    return WorkoutSession(
+      id: _startTime!.microsecondsSinceEpoch.toString(),
+      start: _startTime!,
+      title: title,
+      durationSec: elapsed,
+      distanceKm: distanceM / 1000,
+      kcal: kcal,
+      maxSpeed: maxSpeed,
+      avgHr: _hrWeight > 0 ? (_hrSum / _hrWeight).round() : null,
+      maxHr: _maxHr > 0 ? _maxHr : null,
+      elevationM: elevationM,
+      speedSamples: List.of(speedSamples),
+      hrSamples: List.of(hrSamples),
+    );
+  }
+
+  /// Devam eden antrenmanı telefona yazar; uygulama öldürülse bile kaybolmaz.
+  void _autosave() {
+    if (state != RunState.running && state != RunState.paused) return;
+    if (state == RunState.running) elapsed = _elapsedNow();
+    final s = _snapshot();
+    if (s == null || s.durationSec < 1) return;
+    prefs.setString(_kActiveWorkout, jsonEncode(s.toJson()));
+  }
+
+  void _clearAutosave() => prefs.remove(_kActiveWorkout);
 
   /// Bitirir, kaydeder ve oturumu döndürür (çok kısa ise kaydetmez).
   WorkoutSession? finish() {
     if (state == RunState.idle) return null;
+    if (state == RunState.running) _pauseClock();
     _timer?.cancel();
     _dataSub?.cancel();
+    dev.keepAlive = false;
     dev.treadmill?.stop();
     WakelockPlus.disable().catchError((_) {});
+    WorkoutBackground.stop();
     WorkoutSession? s;
-    if (elapsed >= 20 && _startTime != null) {
-      s = WorkoutSession(
-        id: DateTime.now().microsecondsSinceEpoch.toString(),
-        start: _startTime!,
-        title: title,
-        durationSec: elapsed,
-        distanceKm: distanceM / 1000,
-        kcal: kcal,
-        maxSpeed: maxSpeed,
-        avgHr: _hrCount > 0 ? (_hrSum / _hrCount).round() : null,
-        maxHr: _maxHr > 0 ? _maxHr : null,
-        elevationM: elevationM,
-        speedSamples: List.of(speedSamples),
-        hrSamples: List.of(hrSamples),
-      );
-      history.add(s);
+    if (elapsed >= 20) {
+      s = _snapshot();
+      if (s != null) history.add(s);
     }
+    _clearAutosave();
     lastFinished = s;
     state = RunState.idle;
     targetSpeed = 0;
     targetIncline = 0;
+    pausedByDisconnect = false;
     notifyListeners();
     return s;
   }
 
   WorkoutSession? lastFinished;
 
+  // ---------------- kurtarma ----------------
+
+  /// Önceki çalıştırmada yarım kalmış (uygulama kapanmış) antrenman.
+  WorkoutSession? get recoverable {
+    if (active) return null;
+    final raw = prefs.getString(_kActiveWorkout);
+    if (raw == null) return null;
+    try {
+      final s = WorkoutSession.fromJson(
+        Map<String, dynamic>.from(jsonDecode(raw) as Map),
+      );
+      return s.durationSec >= 20 ? s : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  void resolveRecovery({required bool save}) {
+    final s = recoverable;
+    if (save && s != null) history.importMany([s]);
+    _clearAutosave();
+    notifyListeners();
+  }
+
   @override
   void dispose() {
+    _lifecycle.dispose();
     _timer?.cancel();
     _dataSub?.cancel();
     super.dispose();

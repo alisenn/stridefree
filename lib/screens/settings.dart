@@ -102,7 +102,7 @@ class SettingsScreen extends StatelessWidget {
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.swap_horiz),
-              title: const Text("FitShow'dan / başka uygulamadan aktar"),
+              title: const Text('Verileri içe aktar / yedekle'),
               subtitle: const Text(
                 'Strava, Apple Sağlık, TCX, GPX, CSV · yedek al / geri yükle',
               ),

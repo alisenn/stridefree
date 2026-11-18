@@ -15,7 +15,7 @@ Abonelik yok, reklam yok, kilitli "premium" özellik yok.
 - **Kiloya göre kalori** – ACSM metabolik denklemleri
 - **Sınırsız geçmiş & istatistik** – haftalık grafik, seri, rekorlar, hız/nabız grafikleri
 - **Güvenlik** – hız sınırı, antrenman sırasında ekran açık kalır
-- **FitShow'dan geçiş** – Strava (`activities.csv`), Apple Sağlık (`export.xml`), TCX, GPX ve CSV içe aktarma
+- **İçe aktarma** – Strava (`activities.csv`), Apple Sağlık (`export.xml`), TCX, GPX ve CSV
 - **Dışa aktarma** – her antrenmanı TCX olarak kaydet (Strava / Garmin'e yükle), tüm verileri JSON yedeğe al
 - **Demo modu** – cihaz olmadan dene
 
@@ -49,9 +49,9 @@ Bazı FitShow bantları hızı mil cinsinden bildirir; hız 1,6 kat farklı gör
 
 FitShow protokol desteği gerçek cihazlarda henüz sınırlı test edildi — bandınızda sorun olursa marka/model ile bir issue açın.
 
-## FitShow'dan veri taşıma
+## Başka uygulamalardan veri aktarma
 
-Profil → **Verilerim → FitShow'dan / başka uygulamadan aktar**:
+Profil → **Verilerim → Verileri içe aktar / yedekle**:
 
 - **Strava:** strava.com → Ayarlar → Hesabım → "Hesabınızı indirin" → zip içindeki `activities.csv`
 - **Apple Sağlık:** Sağlık → profil → "Tüm sağlık verilerini dışa aktar" → `export.zip` içindeki `export.xml` (kaynak uygulamaya göre filtrelenebilir)

@@ -1,4 +1,4 @@
-// FitShow'dan (veya başka uygulamadan) geçiş: içe aktarma + yedekleme ekranı.
+// Başka uygulamalardan içe aktarma + yedekleme ekranı.
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -227,13 +227,12 @@ class _ImportScreenState extends State<ImportScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "FitShow'dan geçiş",
+                        "Başka uygulamadan aktar",
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        "FitShow'u Strava'ya veya Apple Sağlık'a bağladıysanız koşularınız oralarda da durur; "
-                        "buradan tek seferde alabilirsiniz:",
+                        "Strava, Apple Sağlık veya dosyalardaki eski koşularınızı tek seferde geçmişinize ekleyin:",
                         style: TextStyle(color: cs.onSurfaceVariant),
                       ),
                       const SizedBox(height: 8),
@@ -247,12 +246,12 @@ class _ImportScreenState extends State<ImportScreen> {
                         Icons.favorite,
                         'Apple Sağlık üzerinden (iPhone)',
                         'Sağlık → profil resmi → "Tüm sağlık verilerini dışa aktar". '
-                            'export.zip içindeki export.xml dosyasını seçin; FitShow kayıtlarını ayrıca seçebilirsiniz.',
+                            'export.zip içindeki export.xml dosyasını seçin; hangi uygulamanın kayıtlarının alınacağını seçebilirsiniz.',
                       ),
                       step(
                         Icons.description,
                         'TCX / GPX dosyaları',
-                        'FitShow, Garmin, Zwift vb. uygulamalardan dışa aktarılan dosyalar.',
+                        'Garmin, Zwift, Strava vb. uygulamalardan dışa aktarılan dosyalar.',
                       ),
                       step(
                         Icons.table_chart,
