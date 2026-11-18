@@ -269,6 +269,29 @@ class _ProgramPainter extends CustomPainter {
 }
 
 /// 5 sn aralıklı örneklerden çizgi grafik
+/// Uzun antrenmanlarda grafiği okunur kılmak için örnekleri en fazla [maxPoints]
+/// noktaya ortalayarak indirir (0 = veri yok, ortalamaya katılmaz).
+List<FlSpot> _downsample(List<double> v, int maxPoints) {
+  if (v.length <= maxPoints) {
+    return [for (var i = 0; i < v.length; i++) FlSpot(i.toDouble(), v[i])];
+  }
+  final step = v.length / maxPoints;
+  final out = <FlSpot>[];
+  for (var b = 0; b < maxPoints; b++) {
+    final from = (b * step).floor(),
+        to = ((b + 1) * step).floor().clamp(from + 1, v.length);
+    var sum = 0.0, n = 0;
+    for (var i = from; i < to; i++) {
+      if (v[i] > 0) {
+        sum += v[i];
+        n++;
+      }
+    }
+    out.add(FlSpot((from + to - 1) / 2, n == 0 ? 0 : sum / n));
+  }
+  return out;
+}
+
 class SampleLineChart extends StatelessWidget {
   final List<double> values;
   final Color color;
@@ -357,10 +380,7 @@ class SampleLineChart extends StatelessWidget {
           ),
           lineBarsData: [
             LineChartBarData(
-              spots: [
-                for (var i = 0; i < values.length; i++)
-                  FlSpot(i.toDouble(), values[i]),
-              ],
+              spots: _downsample(values, 90),
               isCurved: true,
               preventCurveOverShooting: true,
               color: color,
