@@ -335,7 +335,9 @@ class SampleLineChart extends StatelessWidget {
                   double.infinity,
                 ),
                 getTitlesWidget: (v, m) => Text(
-                  '${(v * 5 / 60).round()}dk',
+                  values.length * 5 < 180
+                      ? '${(v * 5).round()}sn'
+                      : '${(v * 5 / 60).round()}dk',
                   style: TextStyle(fontSize: 10, color: cs.onSurfaceVariant),
                 ),
               ),

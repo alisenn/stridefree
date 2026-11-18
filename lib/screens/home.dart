@@ -109,9 +109,21 @@ class _HomeScreenState extends State<HomeScreen> {
                             style: Theme.of(context).textTheme.titleLarge,
                           ),
                           const SizedBox(height: 4),
-                          Text(
-                            '🔥 ${hist.streakDays} günlük seri',
-                            style: TextStyle(color: cs.onSurfaceVariant),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.local_fire_department,
+                                size: 16,
+                                color: hist.streakDays > 0
+                                    ? Colors.orangeAccent
+                                    : cs.onSurfaceVariant,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${hist.streakDays} günlük seri',
+                                style: TextStyle(color: cs.onSurfaceVariant),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -139,26 +151,10 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 8),
             SegmentedButton<GoalType>(
               segments: const [
-                ButtonSegment(
-                  value: GoalType.none,
-                  label: Text('Serbest'),
-                  icon: Icon(Icons.all_inclusive),
-                ),
-                ButtonSegment(
-                  value: GoalType.time,
-                  label: Text('Süre'),
-                  icon: Icon(Icons.timer),
-                ),
-                ButtonSegment(
-                  value: GoalType.distance,
-                  label: Text('Mesafe'),
-                  icon: Icon(Icons.straighten),
-                ),
-                ButtonSegment(
-                  value: GoalType.calories,
-                  label: Text('Kalori'),
-                  icon: Icon(Icons.local_fire_department),
-                ),
+                ButtonSegment(value: GoalType.none, label: Text('Serbest')),
+                ButtonSegment(value: GoalType.time, label: Text('Süre')),
+                ButtonSegment(value: GoalType.distance, label: Text('Mesafe')),
+                ButtonSegment(value: GoalType.calories, label: Text('Kalori')),
               ],
               showSelectedIcon: false,
               selected: {goalType},

@@ -372,13 +372,15 @@ class _Metrics extends StatelessWidget {
         icon: Icons.landscape,
       ),
     ];
-    return GridView.extent(
-      maxCrossAxisExtent: 180,
+    return GridView(
+      gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 150,
+        mainAxisExtent: 80,
+        mainAxisSpacing: 8,
+        crossAxisSpacing: 8,
+      ),
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 8,
-      crossAxisSpacing: 8,
-      childAspectRatio: 1.35,
       children: tiles,
     );
   }

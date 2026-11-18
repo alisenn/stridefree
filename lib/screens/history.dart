@@ -54,13 +54,15 @@ class HistoryScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          GridView.extent(
-            maxCrossAxisExtent: 260,
+          GridView(
+            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: 260,
+              mainAxisExtent: 80,
+              mainAxisSpacing: 8,
+              crossAxisSpacing: 8,
+            ),
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: 8,
-            crossAxisSpacing: 8,
-            childAspectRatio: 2.2,
             children: [
               MetricTile(
                 label: 'Toplam mesafe',
@@ -208,13 +210,15 @@ class SessionDetailScreen extends StatelessWidget {
               if (isSummary)
                 Text(s.title, style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 12),
-              GridView.extent(
-                maxCrossAxisExtent: 180,
+              GridView(
+                gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                  maxCrossAxisExtent: 150,
+                  mainAxisExtent: 80,
+                  mainAxisSpacing: 8,
+                  crossAxisSpacing: 8,
+                ),
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                mainAxisSpacing: 8,
-                crossAxisSpacing: 8,
-                childAspectRatio: 1.5,
                 children: [
                   MetricTile(
                     label: 'Mesafe',
