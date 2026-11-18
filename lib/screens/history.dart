@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../models.dart';
 import '../state.dart';
 import '../widgets.dart';
+import 'import.dart';
 
 const _months = [
   'Oca',
@@ -184,7 +185,16 @@ class SessionDetailScreen extends StatelessWidget {
     final hrVals = s.hrSamples.map((e) => e.toDouble()).toList();
     final hasHr = hrVals.any((v) => v > 0);
     return Scaffold(
-      appBar: AppBar(title: Text(isSummary ? 'Tebrikler!' : s.title)),
+      appBar: AppBar(
+        title: Text(isSummary ? 'Tebrikler!' : s.title),
+        actions: [
+          IconButton(
+            tooltip: 'TCX olarak kaydet (Strava / Garmin)',
+            icon: const Icon(Icons.ios_share),
+            onPressed: () => exportSessionTcx(context, s),
+          ),
+        ],
+      ),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 900),

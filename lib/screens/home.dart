@@ -267,7 +267,7 @@ class _DeviceCard extends StatelessWidget {
             title: Text(t?.name ?? 'Koşu bandı bağlı değil'),
             subtitle: Text(
               t == null
-                  ? 'Bluetooth FTMS uyumlu bantlar desteklenir'
+                  ? 'FTMS ve FitShow modüllü bantlar desteklenir'
                   : '${(dev.last.speedKmh ?? 0).toStringAsFixed(1)} km/s · '
                         'maks ${t.maxSpeed.toStringAsFixed(0)} km/s'
                         '${t.supportsIncline ? ' · eğim %${t.maxIncline.toStringAsFixed(0)}' : ''}',
@@ -299,7 +299,12 @@ class _DeviceCard extends StatelessWidget {
                           context,
                           ScanKind.treadmill,
                         );
-                        if (d != null) await dev.connectTreadmill(d);
+                        if (d != null && context.mounted) {
+                          await dev.connectTreadmill(
+                            d,
+                            context.read<SettingsStore>(),
+                          );
+                        }
                       },
                     ),
                   ),

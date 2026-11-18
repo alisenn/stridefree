@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../state.dart';
 import '../widgets.dart';
+import 'import.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -97,9 +98,44 @@ class SettingsScreen extends StatelessWidget {
                 ),
               ),
           ]),
+          _Section('Verilerim', [
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.swap_horiz),
+              title: const Text("FitShow'dan / başka uygulamadan aktar"),
+              subtitle: const Text(
+                'Strava, Apple Sağlık, TCX, GPX, CSV · yedek al / geri yükle',
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ImportScreen()),
+              ),
+            ),
+          ]),
+          _Section('FitShow modüllü bantlar', [
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Bant hızı mil cinsinden'),
+              subtitle: const Text(
+                'Ekrandaki hız bandın göstergesinden 1.6 kat farklıysa açın',
+              ),
+              value: s.fitshowMiles,
+              onChanged: (v) => s.setFitShow(miles: v),
+            ),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('FitShow protokolünü tercih et'),
+              subtitle: const Text(
+                'Bant hem FTMS hem FitShow destekliyorsa FitShow kullan',
+              ),
+              value: s.preferFitShow,
+              onChanged: (v) => s.setFitShow(prefer: v),
+            ),
+          ]),
           _Section('Hakkında', [
             Text(
-              'StrideFree – Bluetooth FTMS uyumlu koşu bantları için açık ve ücretsiz kontrol uygulaması. '
+              'StrideFree – Bluetooth FTMS ve FitShow modüllü koşu bantları için açık ve ücretsiz kontrol uygulaması. '
               'Abonelik yok, reklam yok, kilitli özellik yok. Verileriniz yalnızca bu cihazda saklanır.',
               style: TextStyle(color: cs.onSurfaceVariant),
             ),

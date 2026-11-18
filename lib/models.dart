@@ -105,6 +105,8 @@ class WorkoutSession {
   final double elevationM;
   final List<double> speedSamples; // her 5 sn
   final List<int> hrSamples; // her 5 sn (0 = veri yok)
+  final String?
+  source; // içe aktarıldıysa kaynak: 'Strava', 'Apple Sağlık', 'TCX'...
 
   WorkoutSession({
     required this.id,
@@ -119,6 +121,7 @@ class WorkoutSession {
     this.elevationM = 0,
     this.speedSamples = const [],
     this.hrSamples = const [],
+    this.source,
   });
 
   double get avgSpeed =>
@@ -141,6 +144,7 @@ class WorkoutSession {
     'elev': elevationM,
     'ss': speedSamples,
     'hs': hrSamples,
+    if (source != null) 'src': source,
   };
 
   factory WorkoutSession.fromJson(Map<String, dynamic> j) => WorkoutSession(
@@ -160,6 +164,7 @@ class WorkoutSession {
     hrSamples: ((j['hs'] as List?) ?? [])
         .map((e) => (e as num).toInt())
         .toList(),
+    source: j['src'] as String?,
   );
 }
 

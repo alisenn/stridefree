@@ -20,8 +20,35 @@ class SettingsStore extends ChangeNotifier {
   double speedLimit = prefs.getDouble('speedLimit') ?? 16;
   double speedStep = prefs.getDouble('speedStep') ?? 0.5;
   double weeklyGoalKm = prefs.getDouble('weeklyGoal') ?? 20;
+  bool fitshowMiles = prefs.getBool('fsMiles') ?? false;
+  bool preferFitShow = prefs.getBool('fsPrefer') ?? false;
+
+  void setFitShow({bool? miles, bool? prefer}) {
+    if (miles != null) prefs.setBool('fsMiles', fitshowMiles = miles);
+    if (prefer != null) prefs.setBool('fsPrefer', preferFitShow = prefer);
+    notifyListeners();
+  }
 
   int get maxHr => 220 - age;
+
+  Map<String, dynamic> toJson() => {
+    'weight': weightKg,
+    'age': age,
+    'speedLimit': speedLimit,
+    'speedStep': speedStep,
+    'weeklyGoal': weeklyGoalKm,
+  };
+
+  void restore(Map<String, dynamic> j) {
+    double? d(String k) => (j[k] as num?)?.toDouble();
+    update(
+      weight: d('weight'),
+      age: (j['age'] as num?)?.toInt(),
+      limit: d('speedLimit'),
+      step: d('speedStep'),
+      weekly: d('weeklyGoal'),
+    );
+  }
 
   void update({
     double? weight,
@@ -85,6 +112,17 @@ class ProgramStore extends ChangeNotifier {
     custom.removeWhere((p) => p.id == id);
     _save();
   }
+
+  int importMany(Iterable<WorkoutProgram> incoming) {
+    var added = 0;
+    for (final p in incoming) {
+      if (custom.any((e) => e.id == p.id)) continue;
+      custom.add(p);
+      added++;
+    }
+    _save();
+    return added;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -119,6 +157,25 @@ class HistoryStore extends ChangeNotifier {
   void remove(String id) {
     sessions.removeWhere((s) => s.id == id);
     _save();
+  }
+
+  /// Aynı antrenman zaten varsa (başlangıç ±2 dk ve benzer süre) atlar.
+  /// Eklenen sayısını döndürür.
+  int importMany(Iterable<WorkoutSession> incoming) {
+    var added = 0;
+    for (final s in incoming) {
+      final dup = sessions.any(
+        (e) =>
+            e.start.difference(s.start).inSeconds.abs() < 120 &&
+            (e.durationSec - s.durationSec).abs() < 120,
+      );
+      if (dup) continue;
+      sessions.add(s);
+      added++;
+    }
+    sessions.sort((a, b) => b.start.compareTo(a.start));
+    _save();
+    return added;
   }
 
   /// Bu haftanın (Pazartesi başlangıçlı) günlük km toplamları
@@ -182,8 +239,15 @@ class DeviceManager extends ChangeNotifier {
 
   Future<void> connectDemo() => _attach(() async => SimulatedTreadmill());
 
-  Future<void> connectTreadmill(BluetoothDevice d) =>
-      _attach(() => FtmsTreadmill.connect(d));
+  Future<void> connectTreadmill(BluetoothDevice d, SettingsStore s) => _attach(
+    () => connectAnyTreadmill(
+      d,
+      age: s.age,
+      weightKg: s.weightKg,
+      fitshowMiles: s.fitshowMiles,
+      preferFitShow: s.preferFitShow,
+    ),
+  );
 
   Future<void> _attach(Future<Treadmill> Function() make) async {
     busy = true;

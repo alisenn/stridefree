@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
+import 'fitshow.dart';
 import 'models.dart';
 
 /// flutter_blue_plus lisansı: kişisel / kâr amacı gütmeyen kullanım ücretsiz.
@@ -124,6 +125,44 @@ int parseHeartRate(List<int> b) {
 // Gerçek FTMS koşu bandı
 // ---------------------------------------------------------------------------
 
+/// Bağlanır, servisleri keşfeder ve uygun sürücüyü seçer:
+/// standart FTMS varsa onu, yoksa FitShow özel protokolünü kullanır.
+Future<Treadmill> connectAnyTreadmill(
+  BluetoothDevice device, {
+  required int age,
+  required double weightKg,
+  bool fitshowMiles = false,
+  bool preferFitShow = false,
+}) async {
+  await device.connect(
+    license: kBleLicense,
+    timeout: const Duration(seconds: 15),
+  );
+  try {
+    final services = await device.discoverServices();
+    final ftms = services.where((s) => s.uuid == ftmsService).firstOrNull;
+    if (ftms != null && !preferFitShow) {
+      return await FtmsTreadmill.attach(device, ftms);
+    }
+    final fs = await FitShowTreadmill.tryAttach(
+      device,
+      services,
+      age: age,
+      weightKg: weightKg,
+      miles: fitshowMiles,
+    );
+    if (fs != null) return fs;
+    if (ftms != null) return await FtmsTreadmill.attach(device, ftms);
+  } catch (e) {
+    await device.disconnect();
+    rethrow;
+  }
+  await device.disconnect();
+  throw Exception(
+    'Bu cihazda desteklenen bir koşu bandı protokolü bulunamadı (FTMS veya FitShow).',
+  );
+}
+
 class FtmsTreadmill extends Treadmill {
   final BluetoothDevice device;
   BluetoothCharacteristic? _cp;
@@ -143,31 +182,21 @@ class FtmsTreadmill extends Treadmill {
   @override
   Stream<bool> get connection => _conn.stream;
 
-  static Future<FtmsTreadmill> connect(BluetoothDevice device) async {
+  static Future<FtmsTreadmill> attach(
+    BluetoothDevice device,
+    BluetoothService ftms,
+  ) async {
     final t = FtmsTreadmill._(device);
-    await t._setup();
+    await t._setup(ftms);
     return t;
   }
 
-  Future<void> _setup() async {
-    await device.connect(
-      license: kBleLicense,
-      timeout: const Duration(seconds: 15),
-    );
+  Future<void> _setup(BluetoothService ftms) async {
     _subs.add(
       device.connectionState.listen((s) {
         _conn.add(s == BluetoothConnectionState.connected);
       }),
     );
-
-    final services = await device.discoverServices();
-    final ftms = services.where((s) => s.uuid == ftmsService).firstOrNull;
-    if (ftms == null) {
-      await device.disconnect();
-      throw Exception(
-        'Bu cihaz standart FTMS desteklemiyor. Bandınızın Bluetooth FTMS uyumlu olduğundan emin olun.',
-      );
-    }
 
     BluetoothCharacteristic? find(Guid g) =>
         ftms.characteristics.where((c) => c.uuid == g).firstOrNull;

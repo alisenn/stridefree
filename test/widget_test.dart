@@ -6,8 +6,19 @@ void main() {
   test('FTMS treadmill data: hız + mesafe + eğim', () {
     // flags = 0x000C (bit2 mesafe, bit3 eğim), hız 850 => 8.50 km/s,
     // mesafe 1234 m (u24), eğim 25 => %2.5, rampa 0
-    final d = parseTreadmillData(
-        [0x0C, 0x00, 0x52, 0x03, 0xD2, 0x04, 0x00, 0x19, 0x00, 0x00, 0x00]);
+    final d = parseTreadmillData([
+      0x0C,
+      0x00,
+      0x52,
+      0x03,
+      0xD2,
+      0x04,
+      0x00,
+      0x19,
+      0x00,
+      0x00,
+      0x00,
+    ]);
     expect(d.speedKmh, 8.5);
     expect(d.totalDistanceM, 1234);
     expect(d.inclinePct, 2.5);

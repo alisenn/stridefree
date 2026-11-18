@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 import '../devices.dart';
+import '../fitshow.dart';
 
 enum ScanKind { treadmill, heartRate }
 
@@ -34,8 +35,27 @@ class _ScanSheetState extends State<_ScanSheet> {
   String? error;
   StreamSubscription? _sub, _scanSub;
 
-  Guid get service =>
-      widget.kind == ScanKind.treadmill ? ftmsService : hrService;
+  List<Guid> get services => widget.kind == ScanKind.treadmill
+      ? [ftmsService, ...fitshowServices]
+      : [hrService];
+
+  /// 'FTMS', 'FitShow', 'Nabız' veya null
+  String? matchLabel(ScanResult r) {
+    final uu = r.advertisementData.serviceUuids;
+    if (widget.kind == ScanKind.heartRate) {
+      return uu.contains(hrService) ? 'Nabız sensörü' : null;
+    }
+    if (uu.contains(ftmsService)) return 'FTMS uyumlu';
+    final n =
+        (r.device.platformName.isNotEmpty
+                ? r.device.platformName
+                : r.advertisementData.advName)
+            .toUpperCase();
+    if (fitshowServices.any(uu.contains) || n.startsWith('FS-')) {
+      return 'FitShow protokolü';
+    }
+    return null;
+  }
 
   @override
   void initState() {
@@ -76,7 +96,8 @@ class _ScanSheetState extends State<_ScanSheet> {
         }
       }
       await FlutterBluePlus.startScan(
-        withServices: (showAll && !kIsWeb) ? [] : [service],
+        withServices: showAll ? [] : services,
+        webOptionalServices: [ftmsService, ...fitshowServices, hrService],
         timeout: const Duration(seconds: 15),
       );
     } catch (e) {
@@ -97,12 +118,7 @@ class _ScanSheetState extends State<_ScanSheet> {
     final cs = Theme.of(context).colorScheme;
     final list =
         results
-            .where(
-              (r) =>
-                  showAll ||
-                  r.advertisementData.serviceUuids.contains(service) ||
-                  kIsWeb,
-            )
+            .where((r) => showAll || matchLabel(r) != null || kIsWeb)
             .where(
               (r) =>
                   !showAll ||
@@ -124,7 +140,7 @@ class _ScanSheetState extends State<_ScanSheet> {
               title: Text(title, style: Theme.of(context).textTheme.titleLarge),
               subtitle: Text(
                 widget.kind == ScanKind.treadmill
-                    ? 'Bandı açın ve Bluetooth FTMS modunun aktif olduğundan emin olun.'
+                    ? 'Bandı açın. FTMS ve FitShow modüllü bantlar desteklenir.'
                     : 'Göğüs bandını takın ya da saatinizde nabız yayınını açın.',
               ),
               trailing: scanning
@@ -138,18 +154,17 @@ class _ScanSheetState extends State<_ScanSheet> {
                       onPressed: _start,
                     ),
             ),
-            if (!kIsWeb)
-              SwitchListTile(
-                dense: true,
-                title: const Text('Tüm Bluetooth cihazlarını göster'),
-                subtitle: const Text('Bandınız listede yoksa açın'),
-                value: showAll,
-                onChanged: (v) async {
-                  setState(() => showAll = v);
-                  await FlutterBluePlus.stopScan();
-                  _start();
-                },
-              ),
+            SwitchListTile(
+              dense: true,
+              title: const Text('Tüm Bluetooth cihazlarını göster'),
+              subtitle: const Text('Bandınız listede yoksa açın'),
+              value: showAll,
+              onChanged: (v) async {
+                setState(() => showAll = v);
+                await FlutterBluePlus.stopScan();
+                _start();
+              },
+            ),
             if (error != null)
               Padding(
                 padding: const EdgeInsets.all(16),
@@ -172,8 +187,8 @@ class _ScanSheetState extends State<_ScanSheet> {
                             : (r.advertisementData.advName.isNotEmpty
                                   ? r.advertisementData.advName
                                   : r.device.remoteId.str);
-                        final isMatch = r.advertisementData.serviceUuids
-                            .contains(service);
+                        final label = matchLabel(r);
+                        final isMatch = label != null;
                         return ListTile(
                           leading: Icon(
                             widget.kind == ScanKind.treadmill
@@ -182,13 +197,7 @@ class _ScanSheetState extends State<_ScanSheet> {
                             color: isMatch ? cs.primary : cs.onSurfaceVariant,
                           ),
                           title: Text(name),
-                          subtitle: Text(
-                            isMatch
-                                ? (widget.kind == ScanKind.treadmill
-                                      ? 'FTMS uyumlu'
-                                      : 'Nabız sensörü')
-                                : r.device.remoteId.str,
-                          ),
+                          subtitle: Text(label ?? r.device.remoteId.str),
                           trailing: Text('${r.rssi} dBm'),
                           onTap: () {
                             FlutterBluePlus.stopScan();
