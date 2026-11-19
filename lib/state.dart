@@ -25,9 +25,33 @@ class SettingsStore extends ChangeNotifier {
   bool fitshowMiles = prefs.getBool('fsMiles') ?? false;
   bool preferFitShow = prefs.getBool('fsPrefer') ?? false;
 
+  /// Motorlu eğimi olmayan, ön ayakları kaldırılarak eğim verilen bantlar için.
+  bool manualInclineEnabled = prefs.getBool('manIncEnabled') ?? false;
+
+  /// Eğim ayakları şu an takılı mı (antrenman ekranından açılıp kapatılır).
+  bool manualInclineActive = prefs.getBool('manIncActive') ?? true;
+
+  /// Ayaklar takılıyken bandın eğimi (%).
+  double manualInclinePct = prefs.getDouble('manIncPct') ?? 4;
+
+  /// Manuel eğim kullanılıyorsa değeri, değilse null.
+  double? get manualIncline =>
+      manualInclineEnabled && manualInclineActive ? manualInclinePct : null;
+
   void setFitShow({bool? miles, bool? prefer}) {
     if (miles != null) prefs.setBool('fsMiles', fitshowMiles = miles);
     if (prefer != null) prefs.setBool('fsPrefer', preferFitShow = prefer);
+    notifyListeners();
+  }
+
+  void setManualIncline({bool? enabled, bool? active, double? pct}) {
+    if (enabled != null) {
+      prefs.setBool('manIncEnabled', manualInclineEnabled = enabled);
+    }
+    if (active != null) {
+      prefs.setBool('manIncActive', manualInclineActive = active);
+    }
+    if (pct != null) prefs.setDouble('manIncPct', manualInclinePct = pct);
     notifyListeners();
   }
 
@@ -39,10 +63,13 @@ class SettingsStore extends ChangeNotifier {
     'speedLimit': speedLimit,
     'speedStep': speedStep,
     'weeklyGoal': weeklyGoalKm,
+    'manIncEnabled': manualInclineEnabled,
+    'manIncPct': manualInclinePct,
   };
 
   void restore(Map<String, dynamic> j) {
     double? d(String k) => (j[k] as num?)?.toDouble();
+    setManualIncline(enabled: j['manIncEnabled'] as bool?, pct: d('manIncPct'));
     update(
       weight: d('weight'),
       age: (j['age'] as num?)?.toInt(),
@@ -405,7 +432,11 @@ class WorkoutController extends ChangeNotifier {
   int _lastSavedAt = 0;
 
   double get speed => dev.last.speedKmh ?? 0;
-  double get incline => dev.last.inclinePct ?? targetIncline;
+
+  /// Manuel eğim açıksa bandın bildirdiği değer yerine onu kullan
+  /// (bu tür bantlar eğimi bilmez, genelde 0 bildirir).
+  double get incline =>
+      settings.manualIncline ?? dev.last.inclinePct ?? targetIncline;
   int? get hr => dev.heartRate;
   bool get active => state != RunState.idle;
 
