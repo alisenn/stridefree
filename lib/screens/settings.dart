@@ -126,7 +126,8 @@ class SettingsScreen extends StatelessWidget {
               Text(
                 'Ölçmek için: ayaklar takılıyken bandın ön ucunun yerden yüksekliğinden '
                 'arka ucunun yüksekliğini çıkarın, bandın boyuna bölüp 100 ile çarpın. '
-                'Örnek: 5 cm fark, 120 cm boy → 5 / 120 × 100 ≈ %4.',
+                'Örnek: 5 cm fark, 100 cm boy → 5 / 100 × 100 = %5 '
+                '(ör. Relax RL-890: üretici 5 cm manuel eğim belirtiyor).',
                 style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
               ),
             ],

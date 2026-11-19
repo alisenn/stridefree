@@ -32,7 +32,7 @@ class SettingsStore extends ChangeNotifier {
   bool manualInclineActive = prefs.getBool('manIncActive') ?? true;
 
   /// Ayaklar takılıyken bandın eğimi (%).
-  double manualInclinePct = prefs.getDouble('manIncPct') ?? 4;
+  double manualInclinePct = prefs.getDouble('manIncPct') ?? 5;
 
   /// Manuel eğim kullanılıyorsa değeri, değilse null.
   double? get manualIncline =>
