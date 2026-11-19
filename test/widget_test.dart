@@ -31,6 +31,16 @@ void main() {
     expect(d.heartRate, 142);
   });
 
+  test('FTMS: bölünmüş paketler birleşince hız kaybolmaz', () {
+    // 1. paket: hız 3.00 km/s (flags 0x0000)
+    // 2. paket: more data + mesafe 60 m (flags 0x0005), hız alanı yok
+    var d = const TreadmillData();
+    d = d.merge(parseTreadmillData([0x00, 0x00, 0x2C, 0x01]));
+    d = d.merge(parseTreadmillData([0x05, 0x00, 0x3C, 0x00, 0x00]));
+    expect(d.speedKmh, 3.0);
+    expect(d.totalDistanceM, 60);
+  });
+
   test('Nabız ölçümü 8 ve 16 bit', () {
     expect(parseHeartRate([0x00, 75]), 75);
     expect(parseHeartRate([0x01, 0x2C, 0x01]), 300);
