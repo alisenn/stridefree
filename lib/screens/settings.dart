@@ -98,6 +98,39 @@ class SettingsScreen extends StatelessWidget {
                 ),
               ),
           ]),
+          _Section('Manuel eğim', [
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Bandımda manuel eğim var'),
+              subtitle: const Text(
+                'Eğim, öndeki ayaklar kaldırılarak veriliyorsa açın (motorlu eğimi olmayan bantlar)',
+              ),
+              value: s.manualInclineEnabled,
+              onChanged: (v) => s.setManualIncline(enabled: v),
+            ),
+            if (s.manualInclineEnabled) ...[
+              _Row(
+                'Eğim',
+                AdjustControl(
+                  compact: true,
+                  label: '%',
+                  value: s.manualInclinePct.toStringAsFixed(1),
+                  onMinus: () => s.setManualIncline(
+                    pct: (s.manualInclinePct - 0.5).clamp(0.5, 15),
+                  ),
+                  onPlus: () => s.setManualIncline(
+                    pct: (s.manualInclinePct + 0.5).clamp(0.5, 15),
+                  ),
+                ),
+              ),
+              Text(
+                'Ölçmek için: ayaklar takılıyken bandın ön ucunun yerden yüksekliğinden '
+                'arka ucunun yüksekliğini çıkarın, bandın boyuna bölüp 100 ile çarpın. '
+                'Örnek: 5 cm fark, 120 cm boy → 5 / 120 × 100 ≈ %4.',
+                style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
+              ),
+            ],
+          ]),
           _Section('Verilerim', [
             ListTile(
               contentPadding: EdgeInsets.zero,

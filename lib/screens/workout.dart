@@ -435,6 +435,7 @@ class _Controls extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = wc.dev.treadmill;
+    final s = context.watch<SettingsStore>();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -457,7 +458,23 @@ class _Controls extends StatelessWidget {
               ),
           ],
         ),
-        if (t?.supportsIncline ?? false) ...[
+        if (s.manualInclineEnabled) ...[
+          const SizedBox(height: 12),
+          Card(
+            margin: EdgeInsets.zero,
+            child: SwitchListTile(
+              secondary: const Icon(Icons.terrain),
+              title: Text(
+                'Eğim ayakları takılı (%${s.manualInclinePct.toStringAsFixed(1)})',
+              ),
+              subtitle: const Text(
+                'Kalori ve tırmanış bu eğime göre hesaplanır',
+              ),
+              value: s.manualInclineActive,
+              onChanged: (v) => s.setManualIncline(active: v),
+            ),
+          ),
+        ] else if (t?.supportsIncline ?? false) ...[
           const SizedBox(height: 12),
           AdjustControl(
             label: 'Eğim (%)',
