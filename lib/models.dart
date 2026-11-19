@@ -16,6 +16,18 @@ class TreadmillData {
     this.heartRate,
     this.elapsedS,
   });
+
+  /// [next]'te olmayan alanları bu paketten tamamlar.
+  /// FTMS bantları veriyi "More Data" bayrağıyla birden fazla pakete bölebilir
+  /// (ör. biri hız, diğeri mesafe); son paketi tek başına almak hızı kaybettirir.
+  TreadmillData merge(TreadmillData next) => TreadmillData(
+    speedKmh: next.speedKmh ?? speedKmh,
+    inclinePct: next.inclinePct ?? inclinePct,
+    totalDistanceM: next.totalDistanceM ?? totalDistanceM,
+    kcal: next.kcal ?? kcal,
+    heartRate: next.heartRate ?? heartRate,
+    elapsedS: next.elapsedS ?? elapsedS,
+  );
 }
 
 class Segment {

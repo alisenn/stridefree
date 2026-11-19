@@ -169,6 +169,7 @@ class FtmsTreadmill extends Treadmill {
   final _data = StreamController<TreadmillData>.broadcast();
   final _conn = StreamController<bool>.broadcast();
   final List<StreamSubscription> _subs = [];
+  TreadmillData _merged = const TreadmillData();
 
   FtmsTreadmill._(this.device);
 
@@ -204,7 +205,10 @@ class FtmsTreadmill extends Treadmill {
     final dataC = find(treadmillDataChar);
     if (dataC != null) {
       _subs.add(
-        dataC.onValueReceived.listen((v) => _data.add(parseTreadmillData(v))),
+        dataC.onValueReceived.listen((v) {
+          _merged = _merged.merge(parseTreadmillData(v));
+          _data.add(_merged);
+        }),
       );
       await dataC.setNotifyValue(true);
     }

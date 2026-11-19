@@ -65,29 +65,32 @@ class MetricTile extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 4),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text.rich(
-              TextSpan(
-                children: [
-                  TextSpan(
-                    text: value,
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w700,
-                      fontFeatures: [FontFeature.tabularFigures()],
-                    ),
-                  ),
-                  if (unit != null)
+          // Flexible: kutu yüksekliği sabit (grid), büyük yazı boyutunda taşmak yerine küçülür.
+          Flexible(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text.rich(
+                TextSpan(
+                  children: [
                     TextSpan(
-                      text: ' $unit',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: cs.onSurfaceVariant,
+                      text: value,
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700,
+                        fontFeatures: [FontFeature.tabularFigures()],
                       ),
                     ),
-                ],
+                    if (unit != null)
+                      TextSpan(
+                        text: ' $unit',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: cs.onSurfaceVariant,
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -318,14 +321,19 @@ class SampleLineChart extends StatelessWidget {
       );
     }
     final maxY = values.reduce((a, b) => a > b ? a : b);
+    // Eksen etiketleri tam sayı ve tekrarsız olsun: aralığı yuvarla, tepeyi aralığın katına çek.
+    final raw = maxY * 1.15 + 1;
+    final step = _niceStep(raw / 4);
+    final top = (raw / step).ceil() * step;
     return SizedBox(
       height: 180,
       child: LineChart(
         LineChartData(
           minY: 0,
-          maxY: maxY * 1.15 + 1,
+          maxY: top,
           gridData: FlGridData(
             drawVerticalLine: false,
+            horizontalInterval: step,
             getDrawingHorizontalLine: (_) => FlLine(
               color: cs.outlineVariant.withValues(alpha: 0.4),
               strokeWidth: 1,
@@ -343,6 +351,7 @@ class SampleLineChart extends StatelessWidget {
               sideTitles: SideTitles(
                 showTitles: true,
                 reservedSize: 34,
+                interval: step,
                 getTitlesWidget: (v, m) => Text(
                   v.toStringAsFixed(0),
                   style: TextStyle(fontSize: 10, color: cs.onSurfaceVariant),
@@ -396,6 +405,19 @@ class SampleLineChart extends StatelessWidget {
       ),
     );
   }
+}
+
+/// 1, 2, 5, 10, 20, 50… dizisinden [x]'e eşit ya da büyük ilk tam sayı adım.
+double _niceStep(double x) {
+  if (x <= 1) return 1;
+  var mag = 1.0;
+  while (mag * 10 <= x) {
+    mag *= 10;
+  }
+  for (final m in [1, 2, 5, 10]) {
+    if (m * mag >= x) return m * mag;
+  }
+  return 10 * mag;
 }
 
 /// Dönem grafiği: her çubuk bir gün / ay / yıl.
