@@ -46,3 +46,6 @@ app.*.map.json
 
 # Local tooling
 .claude/
+
+# Python
+__pycache__/
