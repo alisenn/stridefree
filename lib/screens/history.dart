@@ -446,6 +446,13 @@ class SessionDetailScreen extends StatelessWidget {
                     icon: Icons.local_fire_department,
                   ),
                   MetricTile(
+                    label: tx('Adım', 'Steps'),
+                    value: s.steps == null
+                        ? '--'
+                        : fmtSteps(s.steps!, estimated: s.stepsEstimated),
+                    icon: Icons.directions_walk,
+                  ),
+                  MetricTile(
                     label: tx('Ort. hız', 'Avg speed'),
                     value: s.avgSpeed.toStringAsFixed(1),
                     unit: tx('km/s', 'km/h'),

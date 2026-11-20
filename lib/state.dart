@@ -19,6 +19,7 @@ late SharedPreferences prefs;
 // ---------------------------------------------------------------------------
 class SettingsStore extends ChangeNotifier {
   double weightKg = prefs.getDouble('weight') ?? 75;
+  double heightCm = prefs.getDouble('height') ?? 170;
   int age = prefs.getInt('age') ?? 30;
   double speedLimit = prefs.getDouble('speedLimit') ?? 16;
   double speedStep = prefs.getDouble('speedStep') ?? 0.5;
@@ -78,6 +79,7 @@ class SettingsStore extends ChangeNotifier {
 
   Map<String, dynamic> toJson() => {
     'weight': weightKg,
+    'height': heightCm,
     'age': age,
     'speedLimit': speedLimit,
     'speedStep': speedStep,
@@ -91,6 +93,7 @@ class SettingsStore extends ChangeNotifier {
     setManualIncline(enabled: j['manIncEnabled'] as bool?, pct: d('manIncPct'));
     update(
       weight: d('weight'),
+      height: d('height'),
       age: (j['age'] as num?)?.toInt(),
       limit: d('speedLimit'),
       step: d('speedStep'),
@@ -100,12 +103,14 @@ class SettingsStore extends ChangeNotifier {
 
   void update({
     double? weight,
+    double? height,
     int? age,
     double? limit,
     double? step,
     double? weekly,
   }) {
     if (weight != null) prefs.setDouble('weight', weightKg = weight);
+    if (height != null) prefs.setDouble('height', heightCm = height);
     if (age != null) prefs.setInt('age', this.age = age);
     if (limit != null) prefs.setDouble('speedLimit', speedLimit = limit);
     if (step != null) prefs.setDouble('speedStep', speedStep = step);
@@ -436,6 +441,7 @@ class WorkoutController extends ChangeNotifier {
   double distanceM = 0;
   double kcal = 0;
   double elevationM = 0;
+  double steps = 0;
   double maxSpeed = 0;
   double targetSpeed = 0;
   double targetIncline = 0;
@@ -452,6 +458,8 @@ class WorkoutController extends ChangeNotifier {
   StreamSubscription? _dataSub;
   int? _lastDeviceDist;
   bool _usingDeviceDist = false;
+  int? _lastDeviceSteps;
+  bool _usingDeviceSteps = false;
   DateTime? _startTime;
 
   // Süre gerçek saatten hesaplanır: uygulama bir süre uyusa bile kayma olmaz.
@@ -545,6 +553,7 @@ class WorkoutController extends ChangeNotifier {
     distanceM = 0;
     kcal = 0;
     elevationM = 0;
+    steps = 0;
     maxSpeed = 0;
     segmentIndex = -1;
     speedSamples.clear();
@@ -553,6 +562,8 @@ class WorkoutController extends ChangeNotifier {
     _maxHr = 0;
     _lastDeviceDist = null;
     _usingDeviceDist = false;
+    _lastDeviceSteps = null;
+    _usingDeviceSteps = false;
     _accumSec = 0;
     _runningSince = null;
     _lastTick = null;
@@ -598,7 +609,21 @@ class WorkoutController extends ChangeNotifier {
       }
       _lastDeviceDist = dist;
     }
+    final st = d.steps;
+    if (st != null) {
+      if (state == RunState.running && _lastDeviceSteps != null) {
+        final delta = st - _lastDeviceSteps!;
+        if (delta >= 0 && delta < 1000) {
+          steps += delta;
+          _usingDeviceSteps = true;
+        }
+      }
+      _lastDeviceSteps = st;
+    }
   }
+
+  /// Adım bandın sayacından değil tahminden mi geliyor
+  bool get stepsEstimated => !_usingDeviceSteps;
 
   void _tick() {
     if (state == RunState.paused) {
@@ -633,6 +658,9 @@ class WorkoutController extends ChangeNotifier {
       elevationM += v / 3.6 * dt * (incline / 100);
     }
     kcal += _kcalPerSec(v, incline) * dt;
+    if (!_usingDeviceSteps && v >= 0.5) {
+      steps += v / 3.6 * dt / strideLengthM(settings.heightCm, v);
+    }
     if (v > maxSpeed) maxSpeed = v;
     final h = hr;
     if (h != null && h > 0) {
@@ -778,6 +806,8 @@ class WorkoutController extends ChangeNotifier {
       avgHr: _hrWeight > 0 ? (_hrSum / _hrWeight).round() : null,
       maxHr: _maxHr > 0 ? _maxHr : null,
       elevationM: elevationM,
+      steps: steps.round(),
+      stepsEstimated: stepsEstimated,
       speedSamples: List.of(speedSamples),
       hrSamples: List.of(hrSamples),
     );

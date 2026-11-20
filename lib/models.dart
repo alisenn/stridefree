@@ -10,6 +10,9 @@ class TreadmillData {
   final int? heartRate;
   final int? elapsedS;
 
+  /// Bandın saydığı toplam adım (yalnızca bazı bantlar, ör. FitShow)
+  final int? steps;
+
   const TreadmillData({
     this.speedKmh,
     this.inclinePct,
@@ -17,6 +20,7 @@ class TreadmillData {
     this.kcal,
     this.heartRate,
     this.elapsedS,
+    this.steps,
   });
 
   /// [next]'te olmayan alanları bu paketten tamamlar.
@@ -29,6 +33,7 @@ class TreadmillData {
     kcal: next.kcal ?? kcal,
     heartRate: next.heartRate ?? heartRate,
     elapsedS: next.elapsedS ?? elapsedS,
+    steps: next.steps ?? steps,
   );
 }
 
@@ -117,6 +122,12 @@ class WorkoutSession {
   final int? avgHr;
   final int? maxHr;
   final double elevationM;
+
+  /// Adım sayısı; null = bilinmiyor (eski / içe aktarılmış kayıtlar)
+  final int? steps;
+
+  /// true: adım banttan değil, mesafe ve boydan tahmin edildi
+  final bool stepsEstimated;
   final List<double> speedSamples; // her 5 sn
   final List<int> hrSamples; // her 5 sn (0 = veri yok)
   final String?
@@ -133,6 +144,8 @@ class WorkoutSession {
     this.avgHr,
     this.maxHr,
     this.elevationM = 0,
+    this.steps,
+    this.stepsEstimated = false,
     this.speedSamples = const [],
     this.hrSamples = const [],
     this.source,
@@ -156,6 +169,8 @@ class WorkoutSession {
     'ahr': avgHr,
     'mhr': maxHr,
     'elev': elevationM,
+    if (steps != null) 'steps': steps,
+    if (stepsEstimated) 'stEst': true,
     'ss': speedSamples,
     'hs': hrSamples,
     if (source != null) 'src': source,
@@ -172,6 +187,8 @@ class WorkoutSession {
     avgHr: (j['ahr'] as num?)?.toInt(),
     maxHr: (j['mhr'] as num?)?.toInt(),
     elevationM: (j['elev'] as num?)?.toDouble() ?? 0,
+    steps: (j['steps'] as num?)?.toInt(),
+    stepsEstimated: j['stEst'] == true,
     speedSamples: ((j['ss'] as List?) ?? [])
         .map((e) => (e as num).toDouble())
         .toList(),
@@ -180,6 +197,25 @@ class WorkoutSession {
         .toList(),
     source: j['src'] as String?,
   );
+}
+
+// ---------- Adım tahmini ----------
+
+/// Tek adımın uzunluğu (m): boy ve hıza göre yaklaşık değer.
+/// Yürürken boyun ~%41'i; koşuda adım hızla uzar (~%60–80).
+double strideLengthM(double heightCm, double kmh) {
+  final h = heightCm / 100;
+  if (kmh < 7) return h * 0.415;
+  return h * (0.6 + ((kmh - 7) * 0.025).clamp(0.0, 0.2));
+}
+
+/// Adım sayısını kısa biçimde yazar (ör. 4.512 / 4,512). Tahminse başına ≈.
+String fmtSteps(int steps, {bool estimated = false}) {
+  final s = steps.toString().replaceAllMapped(
+    RegExp(r'\B(?=(\d{3})+(?!\d))'),
+    (_) => isEn ? ',' : '.',
+  );
+  return estimated ? '≈$s' : s;
 }
 
 // ---------- Biçimlendirme yardımcıları ----------

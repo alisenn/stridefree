@@ -41,6 +41,36 @@ void main() {
     expect(d.totalDistanceM, 60);
   });
 
+  test('Adım: boy ve hıza göre adım uzunluğu, kayıt ve biçim', () {
+    // 170 cm, 5 km/s yürüyüş → ~0,71 m adım → 1 km ≈ 1417 adım
+    expect(strideLengthM(170, 5), closeTo(0.7055, 0.001));
+    expect((1000 / strideLengthM(170, 5)).round(), 1417);
+    // Koşuda adım uzar
+    expect(strideLengthM(170, 10), greaterThan(strideLengthM(170, 5)));
+
+    final s = WorkoutSession(
+      id: '1',
+      start: DateTime(2026, 11, 20),
+      title: 'x',
+      durationSec: 600,
+      distanceKm: 1,
+      kcal: 50,
+      maxSpeed: 6,
+      steps: 1417,
+      stepsEstimated: true,
+    );
+    final back = WorkoutSession.fromJson(s.toJson());
+    expect(back.steps, 1417);
+    expect(back.stepsEstimated, true);
+    expect(fmtSteps(4512), '4.512');
+    expect(fmtSteps(4512, estimated: true), '≈4.512');
+    // Eski kayıtlarda adım yok
+    final old = Map<String, dynamic>.from(s.toJson())
+      ..remove('steps')
+      ..remove('stEst');
+    expect(WorkoutSession.fromJson(old).steps, isNull);
+  });
+
   test('Nabız ölçümü 8 ve 16 bit', () {
     expect(parseHeartRate([0x00, 75]), 75);
     expect(parseHeartRate([0x01, 0x2C, 0x01]), 300);

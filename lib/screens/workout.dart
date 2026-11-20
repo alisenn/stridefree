@@ -440,6 +440,11 @@ class _Metrics extends StatelessWidget {
         icon: Icons.local_fire_department,
       ),
       MetricTile(
+        label: tx('Adım', 'Steps'),
+        value: fmtSteps(wc.steps.round(), estimated: wc.stepsEstimated),
+        icon: Icons.directions_walk,
+      ),
+      MetricTile(
         label: tx('Tempo', 'Pace'),
         value: fmtPace(wc.paceMinPerKm),
         unit: '/km',

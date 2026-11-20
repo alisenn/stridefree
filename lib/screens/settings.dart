@@ -46,6 +46,18 @@ class SettingsScreen extends StatelessWidget {
               ),
             ),
             _Row(
+              tx('Boy', 'Height'),
+              AdjustControl(
+                compact: true,
+                label: 'cm',
+                value: s.heightCm.toStringAsFixed(0),
+                onMinus: () =>
+                    s.update(height: (s.heightCm - 1).clamp(100, 230)),
+                onPlus: () =>
+                    s.update(height: (s.heightCm + 1).clamp(100, 230)),
+              ),
+            ),
+            _Row(
               tx('Yaş', 'Age'),
               AdjustControl(
                 compact: true,
@@ -57,8 +69,10 @@ class SettingsScreen extends StatelessWidget {
             ),
             Text(
               tx(
-                'Kalori kilonuza göre (ACSM formülü), nabız bölgeleri yaşınıza göre (maks ${s.maxHr} bpm) hesaplanır.',
-                'Calories are based on your weight (ACSM formula), heart-rate zones on your age (max ${s.maxHr} bpm).',
+                'Kalori kilonuza göre (ACSM formülü), nabız bölgeleri yaşınıza göre (maks ${s.maxHr} bpm) hesaplanır. '
+                    'Bant adım saymıyorsa adım sayısı boyunuz ve hızınızdan tahmin edilir (≈).',
+                'Calories are based on your weight (ACSM formula), heart-rate zones on your age (max ${s.maxHr} bpm). '
+                    "If the treadmill doesn't count steps, they're estimated from your height and speed (≈).",
               ),
               style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
             ),

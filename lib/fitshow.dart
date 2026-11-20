@@ -267,6 +267,8 @@ class FitShowTreadmill extends Treadmill {
         inclinePct: st.incline,
         heartRate: st.heartRate > 0 ? st.heartRate : null,
         elapsedS: st.elapsedS,
+        // Bazı modüller adım saymaz ve hep 0 gönderir; o zaman tahmin kullanılır.
+        steps: st.steps > 0 ? st.steps : null,
       ),
     );
   }
