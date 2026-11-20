@@ -1,0 +1,27 @@
+1. SCREEN RECORDING
+A screen recording captured on a physical iPhone (latest iOS) is attached to this review submission. It starts with launching the app and shows the typical flow: connecting a treadmill, running a workout, changing speed/incline, finishing and saving, history and statistics. The app has no account registration/login, no user-generated content and no paid content.
+
+2. PURPOSE AND AUDIENCE
+StrideFree is a free, open-source companion app for home treadmills that have Bluetooth (standard Bluetooth FTMS treadmills and treadmills with a FitShow Bluetooth module). Target audience: people who walk or run on a home treadmill. Problem it solves: the treadmill makers' apps lock basic features (programs, history, statistics) behind subscriptions and lose workouts when the app goes to the background. StrideFree controls speed and incline, runs interval programs, tracks distance/time/calories/heart rate, keeps unlimited history with weekly/monthly/yearly statistics, and stores everything only on the device. It is completely free: no ads, no subscriptions, no in-app purchases.
+
+3. HOW TO TEST
+No login or account is needed. No treadmill is needed for review:
+- On the home screen tap "Demo": a simulated treadmill connects.
+- Tap "Başla" (Start) to start a free workout, or pick a program in "Programlar" (Programs). Use the +/- buttons to change speed and incline. Tap pause, then "Bitir" (Finish) to save.
+- "Geçmiş" (History) shows the saved workout and weekly/monthly/yearly statistics; open a workout to see its charts and export it as a TCX file.
+- "Profil" (Profile) contains the profile (weight, age), safety speed limit, and import/backup.
+With a real treadmill: tap "Bağlan" (Connect) on the home screen and choose the treadmill from the Bluetooth list. A Bluetooth heart-rate strap can be connected the same way (optional).
+The UI language is Turkish.
+
+4. EXTERNAL SERVICES
+None. The app has no backend server and uses no third-party services, SDKs, analytics, advertising, authentication, payment or AI services. It communicates only with the user's own Bluetooth treadmill and heart-rate strap. Files are imported/exported only when the user picks them.
+
+5. REGIONAL DIFFERENCES
+None. The app works the same in all regions.
+
+6. REGULATED INDUSTRY / THIRD-PARTY MATERIAL
+Not applicable. The app is not a medical device and contains no protected third-party content. Bluetooth FTMS is a public Bluetooth SIG standard. FitShow is a trademark of its owner; StrideFree is not affiliated with it and only talks to treadmills that contain a FitShow module, as their owners' own equipment.
+
+Background mode: bluetooth-central keeps the workout in sync with the treadmill while the user switches to another app (for example, watching a video while walking), so the workout is not lost.
+
+Source code: https://github.com/alisenn/stridefree
