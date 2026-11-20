@@ -165,7 +165,8 @@ FitShow modülünüz mil cinsinden bildiriyor. **Profil → Bant hızı mil cins
 - [x] FTMS ve FitShow kontrolü, programlar, hedefler, geçmiş
 - [x] Nabız bandı, ACSM kalori, manuel eğim
 - [x] Strava / Apple Sağlık / TCX / GPX / CSV içe aktarma, TCX dışa aktarma
-- [ ] İngilizce arayüz (ve diğer diller)
+- [x] Türkçe ve İngilizce arayüz
+- [ ] Diğer diller
 - [ ] Nabza dayalı kalori, aktif / toplam kalori ayrımı
 - [ ] Apple Sağlık / Health Connect senkronizasyonu
 - [ ] Gerçek FitShow cihazlarında daha fazla test

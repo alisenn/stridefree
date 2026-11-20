@@ -9,6 +9,8 @@ import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 
+import 'l10n.dart';
+
 bool get _isAndroid => !kIsWeb && Platform.isAndroid;
 
 class WorkoutBackground {
@@ -19,9 +21,11 @@ class WorkoutBackground {
     FlutterForegroundTask.init(
       androidNotificationOptions: AndroidNotificationOptions(
         channelId: 'workout',
-        channelName: 'Aktif antrenman',
-        channelDescription:
-            'Antrenman sürerken gösterilir; uygulamanın kapanmasını önler.',
+        channelName: tx('Aktif antrenman', 'Active workout'),
+        channelDescription: tx(
+          'Antrenman sürerken gösterilir; uygulamanın kapanmasını önler.',
+          'Shown during a workout; keeps the app from being closed.',
+        ),
         onlyAlertOnce: true,
       ),
       iosNotificationOptions: const IOSNotificationOptions(

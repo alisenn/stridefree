@@ -1,29 +1,52 @@
 // Dönem bazlı istatistikler: hafta / ay / yıl / tümü.
+import 'l10n.dart';
 import 'models.dart';
 
 enum Period { week, month, year, all }
 
 enum Metric { distance, time, calories, count }
 
-const monthShort = [
-  'Oca',
-  'Şub',
-  'Mar',
-  'Nis',
-  'May',
-  'Haz',
-  'Tem',
-  'Ağu',
-  'Eyl',
-  'Eki',
-  'Kas',
-  'Ara',
-];
-const monthLong = [
-  'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', //
-  'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık',
-];
-const dayShort = ['Pt', 'Sa', 'Ça', 'Pe', 'Cu', 'Ct', 'Pz'];
+List<String> get monthShort => isEn
+    ? const [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec',
+      ]
+    : const [
+        'Oca',
+        'Şub',
+        'Mar',
+        'Nis',
+        'May',
+        'Haz',
+        'Tem',
+        'Ağu',
+        'Eyl',
+        'Eki',
+        'Kas',
+        'Ara',
+      ];
+List<String> get monthLong => isEn
+    ? const [
+        'January', 'February', 'March', 'April', 'May', 'June', //
+        'July', 'August', 'September', 'October', 'November', 'December',
+      ]
+    : const [
+        'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', //
+        'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık',
+      ];
+List<String> get dayShort => isEn
+    ? const ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
+    : const ['Pt', 'Sa', 'Ça', 'Pe', 'Cu', 'Ct', 'Pz'];
 
 class PeriodStats {
   final Period period;
@@ -111,9 +134,9 @@ PeriodStats computePeriod(
       }
       final last = DateTime(end.year, end.month, end.day - 1);
       title = offset == 0
-          ? 'Bu hafta'
+          ? tx('Bu hafta', 'This week')
           : offset == -1
-          ? 'Geçen hafta'
+          ? tx('Geçen hafta', 'Last week')
           : '${start.day} ${monthShort[start.month - 1]} – ${last.day} ${monthShort[last.month - 1]}'
                 '${last.year != today.year ? ' ${last.year}' : ''}';
     case Period.month:
@@ -125,7 +148,7 @@ PeriodStats computePeriod(
         labels.add('${i + 1}');
       }
       title = offset == 0
-          ? 'Bu ay'
+          ? tx('Bu ay', 'This month')
           : '${monthLong[start.month - 1]}${start.year != today.year ? ' ${start.year}' : ''}';
     case Period.year:
       start = DateTime(today.year + offset, 1, 1);
@@ -134,7 +157,7 @@ PeriodStats computePeriod(
         bucketStarts.add(DateTime(start.year, i + 1, 1));
         labels.add(monthShort[i]);
       }
-      title = offset == 0 ? 'Bu yıl' : '${start.year}';
+      title = offset == 0 ? tx('Bu yıl', 'This year') : '${start.year}';
     case Period.all:
       final firstYear = all.isEmpty
           ? today.year
@@ -145,7 +168,7 @@ PeriodStats computePeriod(
         bucketStarts.add(DateTime(y, 1, 1));
         labels.add('$y');
       }
-      title = 'Tüm zamanlar';
+      title = tx('Tüm zamanlar', 'All time');
   }
 
   final inRange =

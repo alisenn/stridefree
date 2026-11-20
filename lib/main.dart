@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'l10n.dart';
 import 'models.dart';
 import 'screens/history.dart';
 import 'screens/home.dart';
@@ -13,7 +14,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   prefs = await SharedPreferences.getInstance();
 
-  final settings = SettingsStore();
+  final settings = SettingsStore()..applyLanguage();
   final history = HistoryStore();
   final devices = DeviceManager();
   final workout = WorkoutController(devices, settings, history);
@@ -37,6 +38,8 @@ class StrideFreeApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Dil değişince tüm ağaç yeniden kurulsun (metinler tx() ile anlık okunur).
+    final lang = context.select<SettingsStore, String>((s) => s.language);
     ThemeData theme(Brightness b) => ThemeData(
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(
@@ -46,7 +49,9 @@ class StrideFreeApp extends StatelessWidget {
       cardTheme: const CardThemeData(margin: EdgeInsets.symmetric(vertical: 4)),
     );
     return MaterialApp(
+      key: ValueKey(lang),
       title: 'StrideFree',
+      locale: Locale(appLang.name),
       debugShowCheckedModeBanner: false,
       theme: theme(Brightness.light),
       darkTheme: theme(Brightness.dark),
@@ -63,7 +68,8 @@ class RootNav extends StatefulWidget {
 }
 
 class _RootNavState extends State<RootNav> {
-  int index = 0;
+  // Dil değişince ağaç yeniden kurulur; seçili sekme korunsun diye static.
+  static int index = 0;
 
   @override
   void initState() {
@@ -81,20 +87,20 @@ class _RootNavState extends State<RootNav> {
       barrierDismissible: false,
       builder: (c) => AlertDialog(
         icon: const Icon(Icons.restore),
-        title: const Text('Yarım kalan antrenman'),
+        title: Text(tx('Yarım kalan antrenman', 'Unfinished workout')),
         content: Text(
-          'Uygulama antrenman sırasında kapanmış. Son kaydedilen hâli:\n\n'
+          '${tx('Uygulama antrenman sırasında kapanmış. Son kaydedilen hâli:', 'The app closed during a workout. Last saved state:')}\n\n'
           '${s.title}\n${fmtDuration(s.durationSec)} · '
           '${s.distanceKm.toStringAsFixed(2)} km · ${s.kcal.round()} kcal',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(c, false),
-            child: const Text('Sil'),
+            child: Text(tx('Sil', 'Delete')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(c, true),
-            child: const Text('Geçmişe kaydet'),
+            child: Text(tx('Geçmişe kaydet', 'Save to history')),
           ),
         ],
       ),
@@ -121,17 +127,23 @@ class _RootNavState extends State<RootNav> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: index,
         onDestinationSelected: (i) => setState(() => index = i),
-        destinations: const [
+        destinations: [
           NavigationDestination(
-            icon: Icon(Icons.directions_run),
-            label: 'Koşu',
+            icon: const Icon(Icons.directions_run),
+            label: tx('Koşu', 'Run'),
           ),
           NavigationDestination(
-            icon: Icon(Icons.view_timeline),
-            label: 'Programlar',
+            icon: const Icon(Icons.view_timeline),
+            label: tx('Programlar', 'Programs'),
           ),
-          NavigationDestination(icon: Icon(Icons.insights), label: 'Geçmiş'),
-          NavigationDestination(icon: Icon(Icons.person), label: 'Profil'),
+          NavigationDestination(
+            icon: const Icon(Icons.insights),
+            label: tx('Geçmiş', 'History'),
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.person),
+            label: tx('Profil', 'Profile'),
+          ),
         ],
       ),
     );

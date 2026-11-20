@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../l10n.dart';
 import '../models.dart';
 import '../state.dart';
 import '../widgets.dart';
@@ -15,9 +16,12 @@ Future<void> startWorkout(
   final wc = context.read<WorkoutController>();
   if (!context.read<DeviceManager>().connected) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
+      SnackBar(
         content: Text(
-          'Önce bir koşu bandına bağlanın (veya Demo modunu açın).',
+          tx(
+            'Önce bir koşu bandına bağlanın (veya Demo modunu açın).',
+            'Connect to a treadmill first (or turn on Demo mode).',
+          ),
         ),
       ),
     );
@@ -48,16 +52,21 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (c) => AlertDialog(
-        title: const Text('Antrenmanı bitir?'),
-        content: const Text('Bant durdurulacak ve antrenman kaydedilecek.'),
+        title: Text(tx('Antrenmanı bitir?', 'Finish workout?')),
+        content: Text(
+          tx(
+            'Bant durdurulacak ve antrenman kaydedilecek.',
+            'The treadmill will stop and the workout will be saved.',
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(c, false),
-            child: const Text('Devam et'),
+            child: Text(tx('Devam et', 'Keep going')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(c, true),
-            child: const Text('Bitir'),
+            child: Text(tx('Bitir', 'Finish')),
           ),
         ],
       ),
@@ -108,7 +117,10 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                   color: cs.primary,
                 ),
               ),
-              TextButton(onPressed: wc.finish, child: const Text('İptal')),
+              TextButton(
+                onPressed: wc.finish,
+                child: Text(tx('İptal', 'Cancel')),
+              ),
             ],
           ),
         ),
@@ -160,16 +172,27 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                       Row(
                         children: [
                           Text(
-                            'Bölüm ${wc.segmentIndex + 1}/${wc.program!.segments.length}',
+                            tx(
+                              'Bölüm ${wc.segmentIndex + 1}/${wc.program!.segments.length}',
+                              'Segment ${wc.segmentIndex + 1}/${wc.program!.segments.length}',
+                            ),
                             style: TextStyle(color: cs.onSurfaceVariant),
                           ),
                           const Spacer(),
                           Text(
                             next != null
-                                ? 'Sonraki: ${next.speed.toStringAsFixed(1)} km/s'
-                                      '${next.incline > 0 ? ' · %${next.incline.toStringAsFixed(0)}' : ''}'
-                                      ' — ${fmtDuration(wc.segmentRemaining)}'
-                                : 'Son bölüm — ${fmtDuration(wc.segmentRemaining)}',
+                                ? tx(
+                                    'Sonraki: ${next.speed.toStringAsFixed(1)} km/s'
+                                        '${next.incline > 0 ? ' · %${next.incline.toStringAsFixed(0)}' : ''}'
+                                        ' — ${fmtDuration(wc.segmentRemaining)}',
+                                    'Next: ${next.speed.toStringAsFixed(1)} km/h'
+                                        '${next.incline > 0 ? ' · ${next.incline.toStringAsFixed(0)}%' : ''}'
+                                        ' — ${fmtDuration(wc.segmentRemaining)}',
+                                  )
+                                : tx(
+                                    'Son bölüm — ${fmtDuration(wc.segmentRemaining)}',
+                                    'Last segment — ${fmtDuration(wc.segmentRemaining)}',
+                                  ),
                             style: TextStyle(
                               fontWeight: FontWeight.w700,
                               color: wc.segmentRemaining <= 5
@@ -187,7 +210,10 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Hedef: ${wc.goal.label} — %${(wc.progress! * 100).round()}',
+                      tx(
+                        'Hedef: ${wc.goal.label} — %${(wc.progress! * 100).round()}',
+                        'Goal: ${wc.goal.label} — ${(wc.progress! * 100).round()}%',
+                      ),
                       style: TextStyle(color: cs.onSurfaceVariant),
                     ),
                   ],
@@ -213,10 +239,19 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                           Expanded(
                             child: Text(
                               dev.reconnecting
-                                  ? 'Bant bağlantısı koptu. Antrenman duraklatıldı ve kaydedildi; yeniden bağlanılıyor…'
+                                  ? tx(
+                                      'Bant bağlantısı koptu. Antrenman duraklatıldı ve kaydedildi; yeniden bağlanılıyor…',
+                                      'Treadmill connection lost. Workout paused and saved; reconnecting…',
+                                    )
                                   : dev.connected
-                                  ? 'Bağlantı geri geldi. Devam etmek için "Devam"a basın.'
-                                  : 'Banda bağlanılamadı. Antrenmanınız kayıtlı; "Bitir" ile kaydedebilirsiniz.',
+                                  ? tx(
+                                      'Bağlantı geri geldi. Devam etmek için "Devam"a basın.',
+                                      'Connection restored. Tap "Resume" to continue.',
+                                    )
+                                  : tx(
+                                      'Banda bağlanılamadı. Antrenmanınız kayıtlı; "Bitir" ile kaydedebilirsiniz.',
+                                      'Could not reconnect to the treadmill. Your workout is kept; tap "Finish" to save it.',
+                                    ),
                               style: TextStyle(color: cs.onErrorContainer),
                             ),
                           ),
@@ -228,19 +263,27 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                     children: [
                       Expanded(
                         child: _Hero(
-                          label: paused ? 'DURAKLATILDI' : 'SÜRE',
+                          label: paused
+                              ? tx('DURAKLATILDI', 'PAUSED')
+                              : tx('SÜRE', 'TIME'),
                           value: fmtDuration(wc.elapsed),
                           sub: remainingTotal != null
-                              ? 'kalan ${fmtDuration(remainingTotal.clamp(0, 99999))}'
+                              ? tx(
+                                  'kalan ${fmtDuration(remainingTotal.clamp(0, 99999))}',
+                                  '${fmtDuration(remainingTotal.clamp(0, 99999))} left',
+                                )
                               : null,
                           color: paused ? cs.tertiary : null,
                         ),
                       ),
                       Expanded(
                         child: _Hero(
-                          label: 'HIZ km/s',
+                          label: tx('HIZ km/s', 'SPEED km/h'),
                           value: wc.speed.toStringAsFixed(1),
-                          sub: 'hedef ${wc.targetSpeed.toStringAsFixed(1)}',
+                          sub: tx(
+                            'hedef ${wc.targetSpeed.toStringAsFixed(1)}',
+                            'target ${wc.targetSpeed.toStringAsFixed(1)}',
+                          ),
                           color: cs.primary,
                         ),
                       ),
@@ -288,16 +331,21 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                         size: 30,
                       ),
                       label: Text(
-                        paused ? 'Devam' : 'Duraklat',
+                        paused
+                            ? tx('Devam', 'Resume')
+                            : tx('Duraklat', 'Pause'),
                         style: const TextStyle(fontSize: 18),
                       ),
                       onPressed: () async {
                         final ok = await wc.togglePause();
                         if (!ok && context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
+                            SnackBar(
                               content: Text(
-                                'Koşu bandı bağlı değil. Bağlantı gelince devam edebilirsiniz.',
+                                tx(
+                                  'Koşu bandı bağlı değil. Bağlantı gelince devam edebilirsiniz.',
+                                  'Treadmill not connected. You can resume once it reconnects.',
+                                ),
                               ),
                             ),
                           );
@@ -315,7 +363,10 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                       foregroundColor: cs.onErrorContainer,
                     ),
                     icon: const Icon(Icons.stop_rounded, size: 30),
-                    label: const Text('Bitir', style: TextStyle(fontSize: 18)),
+                    label: Text(
+                      tx('Bitir', 'Finish'),
+                      style: const TextStyle(fontSize: 18),
+                    ),
                     onPressed: () => _confirmStop(context),
                   ),
                 ),
@@ -377,38 +428,40 @@ class _Metrics extends StatelessWidget {
   Widget build(BuildContext context) {
     final tiles = [
       MetricTile(
-        label: 'Mesafe',
+        label: tx('Mesafe', 'Distance'),
         value: (wc.distanceM / 1000).toStringAsFixed(2),
         unit: 'km',
         icon: Icons.straighten,
       ),
       MetricTile(
-        label: 'Kalori',
+        label: tx('Kalori', 'Calories'),
         value: wc.kcal.toStringAsFixed(0),
         unit: 'kcal',
         icon: Icons.local_fire_department,
       ),
       MetricTile(
-        label: 'Tempo',
+        label: tx('Tempo', 'Pace'),
         value: fmtPace(wc.paceMinPerKm),
         unit: '/km',
         icon: Icons.speed,
       ),
       MetricTile(
-        label: 'Eğim',
+        label: tx('Eğim', 'Incline'),
         value: wc.incline.toStringAsFixed(1),
         unit: '%',
         icon: Icons.terrain,
       ),
       MetricTile(
-        label: zone > 0 ? 'Nabız · ${zoneNames[zone]}' : 'Nabız',
+        label: zone > 0
+            ? tx('Nabız · ${zoneNames[zone]}', 'HR · ${zoneNames[zone]}')
+            : tx('Nabız', 'Heart rate'),
         value: hr?.toString() ?? '--',
         unit: 'bpm',
         icon: Icons.favorite,
         color: zone > 0 ? zoneColors[zone] : null,
       ),
       MetricTile(
-        label: 'Tırmanış',
+        label: tx('Tırmanış', 'Elevation'),
         value: wc.elevationM.toStringAsFixed(0),
         unit: 'm',
         icon: Icons.landscape,
@@ -440,7 +493,7 @@ class _Controls extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         AdjustControl(
-          label: 'Hız (km/s)',
+          label: tx('Hız (km/s)', 'Speed (km/h)'),
           value: wc.targetSpeed.toStringAsFixed(1),
           onMinus: () => wc.nudgeSpeed(-1),
           onPlus: () => wc.nudgeSpeed(1),
@@ -465,10 +518,16 @@ class _Controls extends StatelessWidget {
             child: SwitchListTile(
               secondary: const Icon(Icons.terrain),
               title: Text(
-                'Eğim ayakları takılı (%${s.manualInclinePct.toStringAsFixed(1)})',
+                tx(
+                  'Eğim ayakları takılı (%${s.manualInclinePct.toStringAsFixed(1)})',
+                  'Incline risers fitted (${s.manualInclinePct.toStringAsFixed(1)}%)',
+                ),
               ),
-              subtitle: const Text(
-                'Kalori ve tırmanış bu eğime göre hesaplanır',
+              subtitle: Text(
+                tx(
+                  'Kalori ve tırmanış bu eğime göre hesaplanır',
+                  'Calories and elevation are calculated for this incline',
+                ),
               ),
               value: s.manualInclineActive,
               onChanged: (v) => s.setManualIncline(active: v),
@@ -477,7 +536,7 @@ class _Controls extends StatelessWidget {
         ] else if (t?.supportsIncline ?? false) ...[
           const SizedBox(height: 12),
           AdjustControl(
-            label: 'Eğim (%)',
+            label: tx('Eğim (%)', 'Incline (%)'),
             value: wc.targetIncline.toStringAsFixed(0),
             onMinus: () => wc.nudgeIncline(-1),
             onPlus: () => wc.nudgeIncline(1),
@@ -489,7 +548,11 @@ class _Controls extends StatelessWidget {
             children: [
               for (final i in [0.0, 3.0, 6.0, 9.0, 12.0])
                 ActionChip(
-                  label: Text('%${i.toStringAsFixed(0)}'),
+                  label: Text(
+                    isEn
+                        ? '${i.toStringAsFixed(0)}%'
+                        : '%${i.toStringAsFixed(0)}',
+                  ),
                   onPressed: () => wc.setIncline(i),
                 ),
             ],

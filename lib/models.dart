@@ -1,5 +1,7 @@
 // Veri modelleri: cihaz verisi, program segmentleri, antrenman kayıtları.
 
+import 'l10n.dart';
+
 class TreadmillData {
   final double? speedKmh;
   final double? inclinePct;
@@ -97,8 +99,8 @@ class Goal {
   static const none = Goal(GoalType.none, 0);
 
   String get label => switch (type) {
-    GoalType.none => 'Serbest',
-    GoalType.time => '${value.toStringAsFixed(0)} dk',
+    GoalType.none => tx('Serbest', 'Free'),
+    GoalType.time => '${value.toStringAsFixed(0)} ${tx('dk', 'min')}',
     GoalType.distance => '${value.toStringAsFixed(1)} km',
     GoalType.calories => '${value.toStringAsFixed(0)} kcal',
   };
@@ -217,11 +219,15 @@ List<Segment> _intervals(
   ];
 }
 
-final List<WorkoutProgram> builtInPrograms = [
+/// Getter: dil değişince adlar ve açıklamalar da değişir.
+List<WorkoutProgram> get builtInPrograms => [
   WorkoutProgram(
     id: 'b_walk',
-    name: 'Tempolu Yürüyüş',
-    description: 'Başlangıç için 30 dk düşük tempolu yürüyüş, hafif eğim.',
+    name: tx('Tempolu Yürüyüş', 'Brisk Walk'),
+    description: tx(
+      'Başlangıç için 30 dk düşük tempolu yürüyüş, hafif eğim.',
+      '30 min easy-paced walk with a slight incline. Great for beginners.',
+    ),
     builtIn: true,
     segments: [
       Segment(durationSec: 300, speed: 4.0),
@@ -234,8 +240,10 @@ final List<WorkoutProgram> builtInPrograms = [
   WorkoutProgram(
     id: 'b_hiit',
     name: 'HIIT 20',
-    description:
-        '8 tur 30 sn sprint / 90 sn toparlanma. Yağ yakımı için ideal.',
+    description: tx(
+      '8 tur 30 sn sprint / 90 sn toparlanma. Yağ yakımı için ideal.',
+      '8 rounds of 30 s sprint / 90 s recovery. Ideal for burning fat.',
+    ),
     builtIn: true,
     segments: [
       Segment(durationSec: 180, speed: 5.0),
@@ -245,8 +253,11 @@ final List<WorkoutProgram> builtInPrograms = [
   ),
   WorkoutProgram(
     id: 'b_hill',
-    name: 'Tepe Tırmanışı',
-    description: 'Eğimi kademeli artıran, bacak kuvveti odaklı 25 dk.',
+    name: tx('Tepe Tırmanışı', 'Hill Climb'),
+    description: tx(
+      'Eğimi kademeli artıran, bacak kuvveti odaklı 25 dk.',
+      '25 min of gradually rising incline, focused on leg strength.',
+    ),
     builtIn: true,
     segments: [
       Segment(durationSec: 180, speed: 5.0),
@@ -261,8 +272,11 @@ final List<WorkoutProgram> builtInPrograms = [
   ),
   WorkoutProgram(
     id: 'b_12330',
-    name: 'Eğimli 30',
-    description: '%12 eğim, 4.8 km/s, 30 dakika. Klasik eğimli yürüyüş.',
+    name: tx('Eğimli 30', 'Incline 30'),
+    description: tx(
+      '%12 eğim, 4.8 km/s, 30 dakika. Klasik eğimli yürüyüş.',
+      '12% incline, 4.8 km/h, 30 minutes. The classic incline walk.',
+    ),
     builtIn: true,
     segments: [
       Segment(durationSec: 120, speed: 4.0, incline: 4),
@@ -272,9 +286,11 @@ final List<WorkoutProgram> builtInPrograms = [
   ),
   WorkoutProgram(
     id: 'b_c25k',
-    name: '5K Hazırlık – 1. Hafta',
-    description:
-        '60 sn koşu / 90 sn yürüyüş × 8. Sıfırdan 5K koşusuna giden plan.',
+    name: tx('5K Hazırlık – 1. Hafta', '5K Prep – Week 1'),
+    description: tx(
+      '60 sn koşu / 90 sn yürüyüş × 8. Sıfırdan 5K koşusuna giden plan.',
+      '60 s run / 90 s walk × 8. The plan that takes you from zero to 5K.',
+    ),
     builtIn: true,
     segments: [
       Segment(durationSec: 300, speed: 5.0),
@@ -284,8 +300,11 @@ final List<WorkoutProgram> builtInPrograms = [
   ),
   WorkoutProgram(
     id: 'b_pyramid',
-    name: 'Piramit Koşu',
-    description: 'Hız 7→11→7 km/s, her basamak 2 dk.',
+    name: tx('Piramit Koşu', 'Pyramid Run'),
+    description: tx(
+      'Hız 7→11→7 km/s, her basamak 2 dk.',
+      'Speed 7→11→7 km/h, 2 min per step.',
+    ),
     builtIn: true,
     segments: [
       Segment(durationSec: 180, speed: 5.0),
@@ -296,8 +315,11 @@ final List<WorkoutProgram> builtInPrograms = [
   ),
   WorkoutProgram(
     id: 'b_fatburn',
-    name: 'Yağ Yakım Bölgesi',
-    description: '40 dk orta tempo, nabzı %60-70 bölgesinde tutar.',
+    name: tx('Yağ Yakım Bölgesi', 'Fat Burn Zone'),
+    description: tx(
+      '40 dk orta tempo, nabzı %60-70 bölgesinde tutar.',
+      '40 min at a moderate pace, keeps heart rate in the 60–70% zone.',
+    ),
     builtIn: true,
     segments: [
       Segment(durationSec: 300, speed: 5.0),

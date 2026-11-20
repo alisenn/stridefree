@@ -5,6 +5,7 @@ import 'dart:math';
 
 import 'package:xml/xml.dart';
 
+import 'l10n.dart';
 import 'models.dart';
 
 class ImportResult {
@@ -46,7 +47,9 @@ ImportResult parseImportFile(String fileName, List<int> bytes) {
   if (lower.endsWith('.csv') || head.contains(',')) {
     return parseCsv(text);
   }
-  throw const FormatException('Dosya biçimi tanınmadı.');
+  throw FormatException(
+    tx('Dosya biçimi tanınmadı.', 'Unrecognized file format.'),
+  );
 }
 
 String _id(DateTime t) => 'imp_${t.millisecondsSinceEpoch}';
@@ -229,8 +232,11 @@ ImportResult parseCsv(String text) {
   final cElev = col(['elevation gain', 'tırmanış']);
 
   if (cDate == null || cTime == null) {
-    throw const FormatException(
-      'CSV başlıkları tanınmadı. En az "date" ve "duration" (veya "tarih", "süre") sütunları gerekli.',
+    throw FormatException(
+      tx(
+        'CSV başlıkları tanınmadı. En az "date" ve "duration" (veya "tarih", "süre") sütunları gerekli.',
+        'CSV headers not recognized. At least "date" and "duration" (or "tarih", "süre") columns are required.',
+      ),
     );
   }
 
@@ -260,7 +266,7 @@ ImportResult parseCsv(String text) {
         start: start,
         title: (at(cName)?.trim().isNotEmpty ?? false)
             ? at(cName)!.trim()
-            : 'İçe aktarılan koşu',
+            : tx('İçe aktarılan koşu', 'Imported run'),
         durationSec: dur,
         distanceKm: km,
         kcal: _num(at(cKcal)) ?? _estimateKcal(km, dur),
@@ -349,13 +355,15 @@ ImportResult parseAppleHealth(String text) {
         maxHr = double.tryParse(s['maximum'] ?? '')?.round();
       }
     }
-    final src = a['sourceName'] ?? 'Apple Sağlık';
+    final src = a['sourceName'] ?? tx('Apple Sağlık', 'Apple Health');
     sources[src] = (sources[src] ?? 0) + 1;
     out.add(
       WorkoutSession(
         id: _id(start),
         start: start,
-        title: type.contains('Walking') ? 'Yürüyüş ($src)' : 'Koşu ($src)',
+        title: type.contains('Walking')
+            ? tx('Yürüyüş ($src)', 'Walk ($src)')
+            : tx('Koşu ($src)', 'Run ($src)'),
         durationSec: durSec,
         distanceKm: km,
         kcal: kcal > 0 ? kcal : _estimateKcal(km, durSec),
@@ -366,7 +374,11 @@ ImportResult parseAppleHealth(String text) {
       ),
     );
   }
-  return ImportResult('Apple Sağlık', out, sources: sources);
+  return ImportResult(
+    tx('Apple Sağlık', 'Apple Health'),
+    out,
+    sources: sources,
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -444,7 +456,7 @@ List<WorkoutSession> parseTcx(String text) {
       WorkoutSession(
         id: _id(start),
         start: start,
-        title: 'İçe aktarılan koşu',
+        title: tx('İçe aktarılan koşu', 'Imported run'),
         durationSec: sec.round(),
         distanceKm: km,
         kcal: kcal > 0 ? kcal : _estimateKcal(km, sec.round()),
@@ -510,7 +522,7 @@ List<WorkoutSession> parseGpx(String text) {
       WorkoutSession(
         id: _id(first),
         start: first.toLocal(),
-        title: _text(trk, 'name') ?? 'İçe aktarılan koşu',
+        title: _text(trk, 'name') ?? tx('İçe aktarılan koşu', 'Imported run'),
         durationSec: sec,
         distanceKm: km,
         kcal: _estimateKcal(km, sec),
@@ -546,10 +558,15 @@ String buildBackup({
 ImportResult parseBackup(String text) {
   final j = jsonDecode(text);
   if (j is! Map || j['app'] != 'StrideFree') {
-    throw const FormatException('Bu bir StrideFree yedek dosyası değil.');
+    throw FormatException(
+      tx(
+        'Bu bir StrideFree yedek dosyası değil.',
+        'This is not a StrideFree backup file.',
+      ),
+    );
   }
   return ImportResult(
-    'StrideFree yedeği',
+    tx('StrideFree yedeği', 'StrideFree backup'),
     ((j['sessions'] as List?) ?? [])
         .map(
           (e) => WorkoutSession.fromJson(Map<String, dynamic>.from(e as Map)),

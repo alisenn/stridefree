@@ -2,6 +2,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
+import 'l10n.dart';
 import 'models.dart';
 
 const zoneColors = [
@@ -12,14 +13,9 @@ const zoneColors = [
   Color(0xFFFF8A65), // 4 anaerobik
   Color(0xFFE57373), // 5 maksimum
 ];
-const zoneNames = [
-  '—',
-  'Isınma',
-  'Yağ yakımı',
-  'Aerobik',
-  'Anaerobik',
-  'Maksimum',
-];
+List<String> get zoneNames => isEn
+    ? const ['—', 'Warm-up', 'Fat burn', 'Aerobic', 'Anaerobic', 'Maximum']
+    : const ['—', 'Isınma', 'Yağ yakımı', 'Aerobik', 'Anaerobik', 'Maksimum'];
 
 class MetricTile extends StatelessWidget {
   final String label;
@@ -314,7 +310,7 @@ class SampleLineChart extends StatelessWidget {
         height: 160,
         child: Center(
           child: Text(
-            'Grafik için yeterli veri yok',
+            tx('Grafik için yeterli veri yok', 'Not enough data for a chart'),
             style: TextStyle(color: cs.onSurfaceVariant),
           ),
         ),
@@ -368,8 +364,11 @@ class SampleLineChart extends StatelessWidget {
                 ),
                 getTitlesWidget: (v, m) => Text(
                   values.length * 5 < 180
-                      ? '${(v * 5).round()}sn'
-                      : '${(v * 5 / 60).round()}dk',
+                      ? tx('${(v * 5).round()}sn', '${(v * 5).round()}s')
+                      : tx(
+                          '${(v * 5 / 60).round()}dk',
+                          '${(v * 5 / 60).round()}min',
+                        ),
                   style: TextStyle(fontSize: 10, color: cs.onSurfaceVariant),
                 ),
               ),

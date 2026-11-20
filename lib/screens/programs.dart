@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../l10n.dart';
 import '../models.dart';
 import '../state.dart';
 import '../widgets.dart';
@@ -14,20 +15,20 @@ class ProgramsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final store = context.watch<ProgramStore>();
     return Scaffold(
-      appBar: AppBar(title: const Text('Programlar')),
+      appBar: AppBar(title: Text(tx('Programlar', 'Programs'))),
       floatingActionButton: FloatingActionButton.extended(
         icon: const Icon(Icons.add),
-        label: const Text('Yeni program'),
+        label: Text(tx('Yeni program', 'New program')),
         onPressed: () => _openEditor(context, null),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 96),
         children: [
           if (store.custom.isNotEmpty) ...[
-            const _Header('Programlarım'),
+            _Header(tx('Programlarım', 'My programs')),
             for (final p in store.custom) _ProgramCard(p),
           ],
-          const _Header('Hazır programlar'),
+          _Header(tx('Hazır programlar', 'Built-in programs')),
           for (final p in builtInPrograms) _ProgramCard(p),
         ],
       ),
@@ -70,7 +71,10 @@ class _ProgramCard extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    '${(p.totalSec / 60).round()} dk · ~${p.estimatedKm.toStringAsFixed(1)} km',
+                    tx(
+                      '${(p.totalSec / 60).round()} dk · ~${p.estimatedKm.toStringAsFixed(1)} km',
+                      '${(p.totalSec / 60).round()} min · ~${p.estimatedKm.toStringAsFixed(1)} km',
+                    ),
                     style: TextStyle(color: cs.onSurfaceVariant),
                   ),
                 ],
@@ -120,7 +124,12 @@ void _showDetail(BuildContext context, WorkoutProgram p) {
                 children: [
                   Chip(
                     avatar: const Icon(Icons.timer, size: 16),
-                    label: Text('${(p.totalSec / 60).round()} dk'),
+                    label: Text(
+                      tx(
+                        '${(p.totalSec / 60).round()} dk',
+                        '${(p.totalSec / 60).round()} min',
+                      ),
+                    ),
                   ),
                   Chip(
                     avatar: const Icon(Icons.straighten, size: 16),
@@ -128,20 +137,30 @@ void _showDetail(BuildContext context, WorkoutProgram p) {
                   ),
                   Chip(
                     avatar: const Icon(Icons.bolt, size: 16),
-                    label: Text('maks ${p.maxSpeed.toStringAsFixed(1)} km/s'),
+                    label: Text(
+                      tx(
+                        'maks ${p.maxSpeed.toStringAsFixed(1)} km/s',
+                        'max ${p.maxSpeed.toStringAsFixed(1)} km/h',
+                      ),
+                    ),
                   ),
                   Chip(
                     avatar: const Icon(Icons.view_week, size: 16),
-                    label: Text('${p.segments.length} bölüm'),
+                    label: Text(
+                      tx(
+                        '${p.segments.length} bölüm',
+                        '${p.segments.length} segments',
+                      ),
+                    ),
                   ),
                 ],
               ),
               const SizedBox(height: 16),
               FilledButton.icon(
                 icon: const Icon(Icons.play_arrow_rounded),
-                label: const Padding(
-                  padding: EdgeInsets.all(12),
-                  child: Text('Programı başlat'),
+                label: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Text(tx('Programı başlat', 'Start program')),
                 ),
                 onPressed: () {
                   Navigator.pop(c);
@@ -154,7 +173,11 @@ void _showDetail(BuildContext context, WorkoutProgram p) {
                   Expanded(
                     child: OutlinedButton.icon(
                       icon: Icon(p.builtIn ? Icons.copy : Icons.edit),
-                      label: Text(p.builtIn ? 'Kopyala & düzenle' : 'Düzenle'),
+                      label: Text(
+                        p.builtIn
+                            ? tx('Kopyala & düzenle', 'Copy & edit')
+                            : tx('Düzenle', 'Edit'),
+                      ),
                       onPressed: () {
                         Navigator.pop(c);
                         _openEditor(context, p);
@@ -186,7 +209,7 @@ void _openEditor(BuildContext context, WorkoutProgram? source) {
   if (source == null) {
     draft = WorkoutProgram(
       id: 'c_${DateTime.now().microsecondsSinceEpoch}',
-      name: 'Yeni program',
+      name: tx('Yeni program', 'New program'),
       segments: [
         Segment(durationSec: 300, speed: 5.0),
         Segment(durationSec: 600, speed: 8.0),
@@ -198,7 +221,9 @@ void _openEditor(BuildContext context, WorkoutProgram? source) {
       id: source.builtIn
           ? 'c_${DateTime.now().microsecondsSinceEpoch}'
           : source.id,
-      name: source.builtIn ? '${source.name} (kopya)' : source.name,
+      name: source.builtIn
+          ? tx('${source.name} (kopya)', '${source.name} (copy)')
+          : source.name,
       description: source.description,
       segments: source.segments.map((s) => s.copy()).toList(),
     );
@@ -227,7 +252,9 @@ class _ProgramEditorState extends State<ProgramEditor> {
   WorkoutProgram get p => widget.draft;
 
   void _save() {
-    p.name = name.text.trim().isEmpty ? 'Programım' : name.text.trim();
+    p.name = name.text.trim().isEmpty
+        ? tx('Programım', 'My program')
+        : name.text.trim();
     p.description = desc.text.trim();
     context.read<ProgramStore>().upsert(p);
     Navigator.pop(context);
@@ -253,26 +280,33 @@ class _ProgramEditorState extends State<ProgramEditor> {
     final cs = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Program düzenle'),
-        actions: [TextButton(onPressed: _save, child: const Text('Kaydet'))],
+        title: Text(tx('Program düzenle', 'Edit program')),
+        actions: [
+          TextButton(onPressed: _save, child: Text(tx('Kaydet', 'Save'))),
+        ],
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
         children: [
           TextField(
             controller: name,
-            decoration: const InputDecoration(labelText: 'Ad'),
+            decoration: InputDecoration(labelText: tx('Ad', 'Name')),
           ),
           const SizedBox(height: 8),
           TextField(
             controller: desc,
-            decoration: const InputDecoration(labelText: 'Açıklama'),
+            decoration: InputDecoration(
+              labelText: tx('Açıklama', 'Description'),
+            ),
           ),
           const SizedBox(height: 16),
           ProgramChart(program: p, height: 70),
           const SizedBox(height: 4),
           Text(
-            'Toplam ${fmtDuration(p.totalSec)} · ~${p.estimatedKm.toStringAsFixed(2)} km',
+            tx(
+              'Toplam ${fmtDuration(p.totalSec)} · ~${p.estimatedKm.toStringAsFixed(2)} km',
+              'Total ${fmtDuration(p.totalSec)} · ~${p.estimatedKm.toStringAsFixed(2)} km',
+            ),
             style: TextStyle(color: cs.onSurfaceVariant),
           ),
           const SizedBox(height: 12),
@@ -285,12 +319,12 @@ class _ProgramEditorState extends State<ProgramEditor> {
                     Row(
                       children: [
                         Text(
-                          'Bölüm ${i + 1}',
+                          tx('Bölüm ${i + 1}', 'Segment ${i + 1}'),
                           style: const TextStyle(fontWeight: FontWeight.w700),
                         ),
                         const Spacer(),
                         IconButton(
-                          tooltip: 'Çoğalt',
+                          tooltip: tx('Çoğalt', 'Duplicate'),
                           icon: const Icon(Icons.copy, size: 20),
                           onPressed: () => setState(
                             () =>
@@ -298,7 +332,7 @@ class _ProgramEditorState extends State<ProgramEditor> {
                           ),
                         ),
                         IconButton(
-                          tooltip: 'Sil',
+                          tooltip: tx('Sil', 'Delete'),
                           icon: const Icon(Icons.delete_outline, size: 20),
                           onPressed: p.segments.length > 1
                               ? () => setState(() => p.segments.removeAt(i))
@@ -312,7 +346,7 @@ class _ProgramEditorState extends State<ProgramEditor> {
                       children: [
                         AdjustControl(
                           compact: true,
-                          label: 'süre',
+                          label: tx('süre', 'time'),
                           value: fmtDuration(p.segments[i].durationSec),
                           onMinus: () => setState(() {
                             final s = p.segments[i];
@@ -331,7 +365,7 @@ class _ProgramEditorState extends State<ProgramEditor> {
                         ),
                         AdjustControl(
                           compact: true,
-                          label: 'km/s',
+                          label: tx('km/s', 'km/h'),
                           value: p.segments[i].speed.toStringAsFixed(1),
                           onMinus: () => setState(
                             () => p.segments[i].speed =
@@ -344,7 +378,7 @@ class _ProgramEditorState extends State<ProgramEditor> {
                         ),
                         AdjustControl(
                           compact: true,
-                          label: 'eğim %',
+                          label: tx('eğim %', 'incline %'),
                           value: p.segments[i].incline.toStringAsFixed(0),
                           onMinus: () => setState(
                             () => p.segments[i].incline =
@@ -367,7 +401,7 @@ class _ProgramEditorState extends State<ProgramEditor> {
               Expanded(
                 child: OutlinedButton.icon(
                   icon: const Icon(Icons.add),
-                  label: const Text('Bölüm ekle'),
+                  label: Text(tx('Bölüm ekle', 'Add segment')),
                   onPressed: () => setState(
                     () => p.segments.add(
                       p.segments.isEmpty
@@ -381,7 +415,7 @@ class _ProgramEditorState extends State<ProgramEditor> {
               Expanded(
                 child: OutlinedButton.icon(
                   icon: const Icon(Icons.repeat),
-                  label: const Text('Interval ekle'),
+                  label: Text(tx('Interval ekle', 'Add intervals')),
                   onPressed: _addIntervals,
                 ),
               ),
@@ -415,25 +449,25 @@ class _IntervalDialogState extends State<_IntervalDialog> {
       ),
     );
     return AlertDialog(
-      title: const Text('Interval blok ekle'),
+      title: Text(tx('Interval blok ekle', 'Add interval block')),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           row(
-            'Tekrar',
+            tx('Tekrar', 'Repeats'),
             AdjustControl(
               compact: true,
-              label: 'tur',
+              label: tx('tur', 'reps'),
               value: '$reps',
               onMinus: () => setState(() => reps = (reps - 1).clamp(1, 30)),
               onPlus: () => setState(() => reps = (reps + 1).clamp(1, 30)),
             ),
           ),
           row(
-            'Hızlı',
+            tx('Hızlı', 'Fast'),
             AdjustControl(
               compact: true,
-              label: 'km/s',
+              label: tx('km/s', 'km/h'),
               value: fast.toStringAsFixed(1),
               onMinus: () =>
                   setState(() => fast = (fast - 0.5).clamp(1.0, 20.0)),
@@ -442,10 +476,10 @@ class _IntervalDialogState extends State<_IntervalDialog> {
             ),
           ),
           row(
-            'Hızlı süre',
+            tx('Hızlı süre', 'Fast time'),
             AdjustControl(
               compact: true,
-              label: 'sn',
+              label: tx('sn', 's'),
               value: '$fastSec',
               onMinus: () =>
                   setState(() => fastSec = (fastSec - 15).clamp(15, 600)),
@@ -454,10 +488,10 @@ class _IntervalDialogState extends State<_IntervalDialog> {
             ),
           ),
           row(
-            'Yavaş',
+            tx('Yavaş', 'Slow'),
             AdjustControl(
               compact: true,
-              label: 'km/s',
+              label: tx('km/s', 'km/h'),
               value: slow.toStringAsFixed(1),
               onMinus: () =>
                   setState(() => slow = (slow - 0.5).clamp(1.0, 20.0)),
@@ -466,10 +500,10 @@ class _IntervalDialogState extends State<_IntervalDialog> {
             ),
           ),
           row(
-            'Yavaş süre',
+            tx('Yavaş süre', 'Slow time'),
             AdjustControl(
               compact: true,
-              label: 'sn',
+              label: tx('sn', 's'),
               value: '$slowSec',
               onMinus: () =>
                   setState(() => slowSec = (slowSec - 15).clamp(15, 600)),
@@ -482,12 +516,12 @@ class _IntervalDialogState extends State<_IntervalDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Vazgeç'),
+          child: Text(tx('Vazgeç', 'Cancel')),
         ),
         FilledButton(
           onPressed: () =>
               Navigator.pop(context, (reps, fastSec, fast, slowSec, slow)),
-          child: const Text('Ekle'),
+          child: Text(tx('Ekle', 'Add')),
         ),
       ],
     );

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 import '../devices.dart';
+import '../l10n.dart';
 import '../fitshow.dart';
 
 enum ScanKind { treadmill, heartRate }
@@ -43,16 +44,18 @@ class _ScanSheetState extends State<_ScanSheet> {
   String? matchLabel(ScanResult r) {
     final uu = r.advertisementData.serviceUuids;
     if (widget.kind == ScanKind.heartRate) {
-      return uu.contains(hrService) ? 'Nabız sensörü' : null;
+      return uu.contains(hrService)
+          ? tx('Nabız sensörü', 'Heart-rate sensor')
+          : null;
     }
-    if (uu.contains(ftmsService)) return 'FTMS uyumlu';
+    if (uu.contains(ftmsService)) return tx('FTMS uyumlu', 'FTMS compatible');
     final n =
         (r.device.platformName.isNotEmpty
                 ? r.device.platformName
                 : r.advertisementData.advName)
             .toUpperCase();
     if (fitshowServices.any(uu.contains) || n.startsWith('FS-')) {
-      return 'FitShow protokolü';
+      return tx('FitShow protokolü', 'FitShow protocol');
     }
     return null;
   }
@@ -74,9 +77,12 @@ class _ScanSheetState extends State<_ScanSheet> {
     try {
       if (!await FlutterBluePlus.isSupported) {
         setState(
-          () => error =
-              'Bu cihaz/tarayıcı Bluetooth LE desteklemiyor. '
-              'Web için Chrome veya Edge kullanın.',
+          () => error = tx(
+            'Bu cihaz/tarayıcı Bluetooth LE desteklemiyor. '
+                'Web için Chrome veya Edge kullanın.',
+            'This device/browser does not support Bluetooth LE. '
+                'On the web, use Chrome or Edge.',
+          ),
         );
         return;
       }
@@ -90,7 +96,10 @@ class _ScanSheetState extends State<_ScanSheet> {
             );
         if (st != BluetoothAdapterState.on) {
           setState(
-            () => error = 'Bluetooth kapalı veya izin verilmedi. Lütfen açın.',
+            () => error = tx(
+              'Bluetooth kapalı veya izin verilmedi. Lütfen açın.',
+              'Bluetooth is off or permission was denied. Please turn it on.',
+            ),
           );
           return;
         }
@@ -101,7 +110,10 @@ class _ScanSheetState extends State<_ScanSheet> {
         timeout: const Duration(seconds: 15),
       );
     } catch (e) {
-      setState(() => error = 'Tarama başlatılamadı: $e');
+      setState(
+        () =>
+            error = tx('Tarama başlatılamadı: $e', 'Could not start scan: $e'),
+      );
     }
   }
 
@@ -128,8 +140,8 @@ class _ScanSheetState extends State<_ScanSheet> {
             .toList()
           ..sort((a, b) => b.rssi.compareTo(a.rssi));
     final title = widget.kind == ScanKind.treadmill
-        ? 'Koşu bandı ara'
-        : 'Nabız bandı ara';
+        ? tx('Koşu bandı ara', 'Find treadmill')
+        : tx('Nabız bandı ara', 'Find heart-rate strap');
 
     return SafeArea(
       child: SizedBox(
@@ -140,8 +152,14 @@ class _ScanSheetState extends State<_ScanSheet> {
               title: Text(title, style: Theme.of(context).textTheme.titleLarge),
               subtitle: Text(
                 widget.kind == ScanKind.treadmill
-                    ? 'Bandı açın. FTMS ve FitShow modüllü bantlar desteklenir.'
-                    : 'Göğüs bandını takın ya da saatinizde nabız yayınını açın.',
+                    ? tx(
+                        'Bandı açın. FTMS ve FitShow modüllü bantlar desteklenir.',
+                        'Turn on the treadmill. Treadmills with FTMS or FitShow modules are supported.',
+                      )
+                    : tx(
+                        'Göğüs bandını takın ya da saatinizde nabız yayınını açın.',
+                        'Put on your chest strap or turn on heart-rate broadcast on your watch.',
+                      ),
               ),
               trailing: scanning
                   ? const SizedBox(
@@ -156,8 +174,18 @@ class _ScanSheetState extends State<_ScanSheet> {
             ),
             SwitchListTile(
               dense: true,
-              title: const Text('Tüm Bluetooth cihazlarını göster'),
-              subtitle: const Text('Bandınız listede yoksa açın'),
+              title: Text(
+                tx(
+                  'Tüm Bluetooth cihazlarını göster',
+                  'Show all Bluetooth devices',
+                ),
+              ),
+              subtitle: Text(
+                tx(
+                  'Bandınız listede yoksa açın',
+                  'Turn on if your treadmill is not listed',
+                ),
+              ),
               value: showAll,
               onChanged: (v) async {
                 setState(() => showAll = v);
@@ -174,7 +202,9 @@ class _ScanSheetState extends State<_ScanSheet> {
               child: list.isEmpty
                   ? Center(
                       child: Text(
-                        scanning ? 'Aranıyor…' : 'Cihaz bulunamadı',
+                        scanning
+                            ? tx('Aranıyor…', 'Searching…')
+                            : tx('Cihaz bulunamadı', 'No devices found'),
                         style: TextStyle(color: cs.onSurfaceVariant),
                       ),
                     )

@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 import 'fitshow.dart';
+import 'l10n.dart';
 import 'models.dart';
 
 /// flutter_blue_plus lisansı: kişisel / kâr amacı gütmeyen kullanım ücretsiz.
@@ -159,7 +160,10 @@ Future<Treadmill> connectAnyTreadmill(
   }
   await device.disconnect();
   throw Exception(
-    'Bu cihazda desteklenen bir koşu bandı protokolü bulunamadı (FTMS veya FitShow).',
+    tx(
+      'Bu cihazda desteklenen bir koşu bandı protokolü bulunamadı (FTMS veya FitShow).',
+      'No supported treadmill protocol found on this device (FTMS or FitShow).',
+    ),
   );
 }
 
@@ -305,7 +309,7 @@ class SimulatedTreadmill extends Treadmill {
   }
 
   @override
-  String get name => 'Demo Koşu Bandı';
+  String get name => tx('Demo Koşu Bandı', 'Demo Treadmill');
   @override
   bool get isDemo => true;
   @override
@@ -373,8 +377,9 @@ class HeartRateMonitor {
 
   HeartRateMonitor._(this.device);
 
-  String get name =>
-      device.platformName.isNotEmpty ? device.platformName : 'Nabız bandı';
+  String get name => device.platformName.isNotEmpty
+      ? device.platformName
+      : tx('Nabız bandı', 'Heart-rate strap');
   Stream<int> get heartRate => _hr.stream;
 
   static Future<HeartRateMonitor> connect(BluetoothDevice device) async {
@@ -390,7 +395,12 @@ class HeartRateMonitor {
         .firstOrNull;
     if (c == null) {
       await device.disconnect();
-      throw Exception('Bu cihazda nabız servisi bulunamadı.');
+      throw Exception(
+        tx(
+          'Bu cihazda nabız servisi bulunamadı.',
+          'No heart-rate service found on this device.',
+        ),
+      );
     }
     m._subs.add(c.onValueReceived.listen((v) => m._hr.add(parseHeartRate(v))));
     await c.setNotifyValue(true);

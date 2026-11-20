@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../l10n.dart';
 import '../state.dart';
 import '../widgets.dart';
 import 'import.dart';
@@ -14,13 +15,27 @@ class SettingsScreen extends StatelessWidget {
     final s = context.watch<SettingsStore>();
     final cs = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: AppBar(title: const Text('Profil & Ayarlar')),
+      appBar: AppBar(title: Text(tx('Profil & Ayarlar', 'Profile & Settings'))),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
         children: [
-          _Section('Profil', [
+          _Section(tx('Dil', 'Language'), [
+            SegmentedButton<String>(
+              segments: [
+                ButtonSegment(
+                  value: 'system',
+                  label: Text(tx('Sistem', 'System')),
+                ),
+                const ButtonSegment(value: 'tr', label: Text('Türkçe')),
+                const ButtonSegment(value: 'en', label: Text('English')),
+              ],
+              selected: {s.language},
+              onSelectionChanged: (v) => s.setLanguage(v.first),
+            ),
+          ]),
+          _Section(tx('Profil', 'Profile'), [
             _Row(
-              'Kilo',
+              tx('Kilo', 'Weight'),
               AdjustControl(
                 compact: true,
                 label: 'kg',
@@ -31,23 +46,26 @@ class SettingsScreen extends StatelessWidget {
               ),
             ),
             _Row(
-              'Yaş',
+              tx('Yaş', 'Age'),
               AdjustControl(
                 compact: true,
-                label: 'yıl',
+                label: tx('yıl', 'yrs'),
                 value: '${s.age}',
                 onMinus: () => s.update(age: (s.age - 1).clamp(10, 100)),
                 onPlus: () => s.update(age: (s.age + 1).clamp(10, 100)),
               ),
             ),
             Text(
-              'Kalori kilonuza göre (ACSM formülü), nabız bölgeleri yaşınıza göre (maks ${s.maxHr} bpm) hesaplanır.',
+              tx(
+                'Kalori kilonuza göre (ACSM formülü), nabız bölgeleri yaşınıza göre (maks ${s.maxHr} bpm) hesaplanır.',
+                'Calories are based on your weight (ACSM formula), heart-rate zones on your age (max ${s.maxHr} bpm).',
+              ),
               style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
             ),
           ]),
-          _Section('Hedefler', [
+          _Section(tx('Hedefler', 'Goals'), [
             _Row(
-              'Haftalık hedef',
+              tx('Haftalık hedef', 'Weekly goal'),
               AdjustControl(
                 compact: true,
                 label: 'km',
@@ -59,19 +77,19 @@ class SettingsScreen extends StatelessWidget {
               ),
             ),
           ]),
-          _Section('Güvenlik & kontrol', [
+          _Section(tx('Güvenlik & kontrol', 'Safety & control'), [
             _Row(
-              'Hız sınırı',
+              tx('Hız sınırı', 'Speed limit'),
               AdjustControl(
                 compact: true,
-                label: 'km/s',
+                label: tx('km/s', 'km/h'),
                 value: s.speedLimit.toStringAsFixed(0),
                 onMinus: () => s.update(limit: (s.speedLimit - 1).clamp(3, 25)),
                 onPlus: () => s.update(limit: (s.speedLimit + 1).clamp(3, 25)),
               ),
             ),
             _Row(
-              'Hız adımı (+/-)',
+              tx('Hız adımı (+/-)', 'Speed step (+/-)'),
               SegmentedButton<double>(
                 segments: const [
                   ButtonSegment(value: 0.1, label: Text('0.1')),
@@ -83,7 +101,7 @@ class SettingsScreen extends StatelessWidget {
               ),
             ),
           ]),
-          _Section('Nabız bölgeleri', [
+          _Section(tx('Nabız bölgeleri', 'Heart-rate zones'), [
             for (var z = 1; z <= 5; z++)
               ListTile(
                 dense: true,
@@ -92,25 +110,35 @@ class SettingsScreen extends StatelessWidget {
                   radius: 8,
                   backgroundColor: zoneColors[z],
                 ),
-                title: Text('Bölge $z · ${zoneNames[z]}'),
+                title: Text(
+                  tx('Bölge $z · ${zoneNames[z]}', 'Zone $z · ${zoneNames[z]}'),
+                ),
                 trailing: Text(
                   '${(s.maxHr * (0.4 + z * 0.1)).round()}–${(s.maxHr * (0.5 + z * 0.1)).round()} bpm',
                 ),
               ),
           ]),
-          _Section('Manuel eğim', [
+          _Section(tx('Manuel eğim', 'Manual incline'), [
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
-              title: const Text('Bandımda manuel eğim var'),
-              subtitle: const Text(
-                'Eğim, öndeki ayaklar kaldırılarak veriliyorsa açın (motorlu eğimi olmayan bantlar)',
+              title: Text(
+                tx(
+                  'Bandımda manuel eğim var',
+                  'My treadmill has manual incline',
+                ),
+              ),
+              subtitle: Text(
+                tx(
+                  'Eğim, öndeki ayaklar kaldırılarak veriliyorsa açın (motorlu eğimi olmayan bantlar)',
+                  'Turn on if incline is set by raising the front feet (treadmills without motorized incline)',
+                ),
               ),
               value: s.manualInclineEnabled,
               onChanged: (v) => s.setManualIncline(enabled: v),
             ),
             if (s.manualInclineEnabled) ...[
               _Row(
-                'Eğim',
+                tx('Eğim', 'Incline'),
                 AdjustControl(
                   compact: true,
                   label: '%',
@@ -124,21 +152,32 @@ class SettingsScreen extends StatelessWidget {
                 ),
               ),
               Text(
-                'Ölçmek için: ayaklar takılıyken bandın ön ucunun yerden yüksekliğinden '
-                'arka ucunun yüksekliğini çıkarın, bandın boyuna bölüp 100 ile çarpın. '
-                'Örnek: 5 cm fark, 100 cm boy → 5 / 100 × 100 = %5 '
-                '(ör. Relax RL-890: üretici 5 cm manuel eğim belirtiyor).',
+                tx(
+                  'Ölçmek için: ayaklar takılıyken bandın ön ucunun yerden yüksekliğinden '
+                      'arka ucunun yüksekliğini çıkarın, bandın boyuna bölüp 100 ile çarpın. '
+                      'Örnek: 5 cm fark, 100 cm boy → 5 / 100 × 100 = %5 '
+                      '(ör. Relax RL-890: üretici 5 cm manuel eğim belirtiyor).',
+                  'To measure: with the feet attached, subtract the rear end height from the '
+                      'front end height, divide by the treadmill length and multiply by 100. '
+                      'Example: 5 cm difference, 100 cm length → 5 / 100 × 100 = 5% '
+                      '(e.g. Relax RL-890: the maker specifies 5 cm manual incline).',
+                ),
                 style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
               ),
             ],
           ]),
-          _Section('Verilerim', [
+          _Section(tx('Verilerim', 'My data'), [
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.swap_horiz),
-              title: const Text('Verileri içe aktar / yedekle'),
-              subtitle: const Text(
-                'Strava, Apple Sağlık, TCX, GPX, CSV · yedek al / geri yükle',
+              title: Text(
+                tx('Verileri içe aktar / yedekle', 'Import / back up data'),
+              ),
+              subtitle: Text(
+                tx(
+                  'Strava, Apple Sağlık, TCX, GPX, CSV · yedek al / geri yükle',
+                  'Strava, Apple Health, TCX, GPX, CSV · back up / restore',
+                ),
               ),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => Navigator.push(
@@ -147,30 +186,44 @@ class SettingsScreen extends StatelessWidget {
               ),
             ),
           ]),
-          _Section('FitShow modüllü bantlar', [
+          _Section(tx('FitShow modüllü bantlar', 'FitShow treadmills'), [
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
-              title: const Text('Bant hızı mil cinsinden'),
-              subtitle: const Text(
-                'Ekrandaki hız bandın göstergesinden 1.6 kat farklıysa açın',
+              title: Text(
+                tx('Bant hızı mil cinsinden', 'Treadmill speed in miles'),
+              ),
+              subtitle: Text(
+                tx(
+                  'Ekrandaki hız bandın göstergesinden 1.6 kat farklıysa açın',
+                  'Turn on if the app speed differs from the treadmill display by 1.6x',
+                ),
               ),
               value: s.fitshowMiles,
               onChanged: (v) => s.setFitShow(miles: v),
             ),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
-              title: const Text('FitShow protokolünü tercih et'),
-              subtitle: const Text(
-                'Bant hem FTMS hem FitShow destekliyorsa FitShow kullan',
+              title: Text(
+                tx('FitShow protokolünü tercih et', 'Prefer FitShow protocol'),
+              ),
+              subtitle: Text(
+                tx(
+                  'Bant hem FTMS hem FitShow destekliyorsa FitShow kullan',
+                  'Use FitShow if the treadmill supports both FTMS and FitShow',
+                ),
               ),
               value: s.preferFitShow,
               onChanged: (v) => s.setFitShow(prefer: v),
             ),
           ]),
-          _Section('Hakkında', [
+          _Section(tx('Hakkında', 'About'), [
             Text(
-              'StrideFree – Bluetooth FTMS ve FitShow modüllü koşu bantları için açık ve ücretsiz kontrol uygulaması. '
-              'Abonelik yok, reklam yok, kilitli özellik yok. Verileriniz yalnızca bu cihazda saklanır.',
+              tx(
+                'StrideFree – Bluetooth FTMS ve FitShow modüllü koşu bantları için açık ve ücretsiz kontrol uygulaması. '
+                    'Abonelik yok, reklam yok, kilitli özellik yok. Verileriniz yalnızca bu cihazda saklanır.',
+                'StrideFree – an open, free controller app for Bluetooth FTMS and FitShow treadmills. '
+                    'No subscription, no ads, no locked features. Your data is stored only on this device.',
+              ),
               style: TextStyle(color: cs.onSurfaceVariant),
             ),
           ]),

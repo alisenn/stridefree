@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../l10n.dart';
 import '../models.dart';
 import '../state.dart';
 import 'scan.dart';
@@ -54,7 +55,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    'TÜM ÖZELLİKLER ÜCRETSİZ',
+                    tx('TÜM ÖZELLİKLER ÜCRETSİZ', 'ALL FEATURES FREE'),
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w800,
@@ -86,7 +87,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           Center(
                             child: Text(
-                              '${(weekKm / settings.weeklyGoalKm * 100).clamp(0, 999).round()}%',
+                              isEn
+                                  ? '${(weekKm / settings.weeklyGoalKm * 100).clamp(0, 999).round()}%'
+                                  : '%${(weekKm / settings.weeklyGoalKm * 100).clamp(0, 999).round()}',
                               style: const TextStyle(
                                 fontWeight: FontWeight.w700,
                               ),
@@ -101,7 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Bu hafta',
+                            tx('Bu hafta', 'This week'),
                             style: TextStyle(color: cs.onSurfaceVariant),
                           ),
                           Text(
@@ -120,7 +123,10 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                '${hist.streakDays} günlük seri',
+                                tx(
+                                  '${hist.streakDays} günlük seri',
+                                  '${hist.streakDays}-day streak',
+                                ),
                                 style: TextStyle(color: cs.onSurfaceVariant),
                               ),
                             ],
@@ -145,16 +151,28 @@ class _HomeScreenState extends State<HomeScreen> {
 
             // ------- Hızlı başlat -------
             Text(
-              'Hızlı başlat',
+              tx('Hızlı başlat', 'Quick start'),
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
             SegmentedButton<GoalType>(
-              segments: const [
-                ButtonSegment(value: GoalType.none, label: Text('Serbest')),
-                ButtonSegment(value: GoalType.time, label: Text('Süre')),
-                ButtonSegment(value: GoalType.distance, label: Text('Mesafe')),
-                ButtonSegment(value: GoalType.calories, label: Text('Kalori')),
+              segments: [
+                ButtonSegment(
+                  value: GoalType.none,
+                  label: Text(tx('Serbest', 'Free')),
+                ),
+                ButtonSegment(
+                  value: GoalType.time,
+                  label: Text(tx('Süre', 'Time')),
+                ),
+                ButtonSegment(
+                  value: GoalType.distance,
+                  label: Text(tx('Mesafe', 'Distance')),
+                ),
+                ButtonSegment(
+                  value: GoalType.calories,
+                  label: Text(tx('Kalori', 'Calories')),
+                ),
               ],
               showSelectedIcon: false,
               selected: {goalType},
@@ -174,7 +192,12 @@ class _HomeScreenState extends State<HomeScreen> {
               child: FilledButton.icon(
                 icon: const Icon(Icons.play_arrow_rounded, size: 32),
                 label: Text(
-                  dev.connected ? 'Başla' : 'Önce koşu bandına bağlan',
+                  dev.connected
+                      ? tx('Başla', 'Start')
+                      : tx(
+                          'Önce koşu bandına bağlan',
+                          'Connect a treadmill first',
+                        ),
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
@@ -210,7 +233,7 @@ class _GoalSlider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (min, max, div, unit) = switch (type) {
-      GoalType.time => (5.0, 120.0, 23, 'dk'),
+      GoalType.time => (5.0, 120.0, 23, tx('dk', 'min')),
       GoalType.distance => (0.5, 42.0, 83, 'km'),
       GoalType.calories => (50.0, 1500.0, 29, 'kcal'),
       GoalType.none => (0.0, 1.0, 1, ''),
@@ -260,13 +283,23 @@ class _DeviceCard extends StatelessWidget {
                 color: t != null ? cs.onPrimary : cs.onSurfaceVariant,
               ),
             ),
-            title: Text(t?.name ?? 'Koşu bandı bağlı değil'),
+            title: Text(
+              t?.name ?? tx('Koşu bandı bağlı değil', 'No treadmill connected'),
+            ),
             subtitle: Text(
               t == null
-                  ? 'FTMS ve FitShow modüllü bantlar desteklenir'
-                  : '${(dev.last.speedKmh ?? 0).toStringAsFixed(1)} km/s · '
-                        'maks ${t.maxSpeed.toStringAsFixed(0)} km/s'
-                        '${t.supportsIncline ? ' · eğim %${t.maxIncline.toStringAsFixed(0)}' : ''}',
+                  ? tx(
+                      'FTMS ve FitShow modüllü bantlar desteklenir',
+                      'Treadmills with FTMS or FitShow modules are supported',
+                    )
+                  : tx(
+                      '${(dev.last.speedKmh ?? 0).toStringAsFixed(1)} km/s · '
+                          'maks ${t.maxSpeed.toStringAsFixed(0)} km/s'
+                          '${t.supportsIncline ? ' · eğim %${t.maxIncline.toStringAsFixed(0)}' : ''}',
+                      '${(dev.last.speedKmh ?? 0).toStringAsFixed(1)} km/h · '
+                          'max ${t.maxSpeed.toStringAsFixed(0)} km/h'
+                          '${t.supportsIncline ? ' · incline ${t.maxIncline.toStringAsFixed(0)}%' : ''}',
+                    ),
             ),
             trailing: dev.busy
                 ? const SizedBox(
@@ -277,7 +310,7 @@ class _DeviceCard extends StatelessWidget {
                 : t != null
                 ? TextButton(
                     onPressed: dev.disconnectTreadmill,
-                    child: const Text('Ayır'),
+                    child: Text(tx('Ayır', 'Disconnect')),
                   )
                 : null,
           ),
@@ -289,7 +322,7 @@ class _DeviceCard extends StatelessWidget {
                   Expanded(
                     child: FilledButton.tonalIcon(
                       icon: const Icon(Icons.bluetooth_searching),
-                      label: const Text('Bağlan'),
+                      label: Text(tx('Bağlan', 'Connect')),
                       onPressed: () async {
                         final d = await showScanSheet(
                           context,
@@ -320,14 +353,20 @@ class _DeviceCard extends StatelessWidget {
               Icons.favorite,
               color: dev.hrm != null ? Colors.redAccent : cs.onSurfaceVariant,
             ),
-            title: Text(dev.hrm?.name ?? 'Nabız bandı (isteğe bağlı)'),
+            title: Text(
+              dev.hrm?.name ??
+                  tx(
+                    'Nabız bandı (isteğe bağlı)',
+                    'Heart-rate strap (optional)',
+                  ),
+            ),
             subtitle: dev.hrm != null
                 ? Text('${dev.strapHr ?? '--'} bpm')
                 : null,
             trailing: dev.hrm != null
                 ? TextButton(
                     onPressed: dev.disconnectHrm,
-                    child: const Text('Ayır'),
+                    child: Text(tx('Ayır', 'Disconnect')),
                   )
                 : TextButton(
                     onPressed: () async {
@@ -337,7 +376,7 @@ class _DeviceCard extends StatelessWidget {
                       );
                       if (d != null) await dev.connectHrm(d);
                     },
-                    child: const Text('Bağlan'),
+                    child: Text(tx('Bağlan', 'Connect')),
                   ),
           ),
         ],

@@ -11,6 +11,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 
 import 'background.dart';
 import 'devices.dart';
+import 'l10n.dart';
 import 'models.dart';
 
 late SharedPreferences prefs;
@@ -24,6 +25,24 @@ class SettingsStore extends ChangeNotifier {
   double weeklyGoalKm = prefs.getDouble('weeklyGoal') ?? 20;
   bool fitshowMiles = prefs.getBool('fsMiles') ?? false;
   bool preferFitShow = prefs.getBool('fsPrefer') ?? false;
+
+  /// Arayüz dili: 'system', 'tr' veya 'en'.
+  String language = prefs.getString('lang') ?? 'system';
+
+  /// Kayıtlı dil seçimini l10n katmanına uygular.
+  void applyLanguage() {
+    langOverride = switch (language) {
+      'tr' => AppLang.tr,
+      'en' => AppLang.en,
+      _ => null,
+    };
+  }
+
+  void setLanguage(String v) {
+    prefs.setString('lang', language = v);
+    applyLanguage();
+    notifyListeners();
+  }
 
   /// Motorlu eğimi olmayan, ön ayakları kaldırılarak eğim verilen bantlar için.
   bool manualInclineEnabled = prefs.getBool('manIncEnabled') ?? false;
@@ -304,7 +323,10 @@ class DeviceManager extends ChangeNotifier {
           if (keepAlive && _lastMake != null) {
             _reconnectLoop();
           } else {
-            error = 'Koşu bandı bağlantısı koptu.';
+            error = tx(
+              'Koşu bandı bağlantısı koptu.',
+              'Treadmill connection lost.',
+            );
             notifyListeners();
           }
         }
@@ -322,7 +344,10 @@ class DeviceManager extends ChangeNotifier {
   Future<void> _reconnectLoop() async {
     if (reconnecting) return;
     reconnecting = true;
-    error = 'Bağlantı koptu, yeniden bağlanılıyor…';
+    error = tx(
+      'Bağlantı koptu, yeniden bağlanılıyor…',
+      'Connection lost, reconnecting…',
+    );
     notifyListeners();
     final make = _lastMake!;
     for (var i = 0; i < 24 && keepAlive && treadmill == null; i++) {
@@ -331,7 +356,12 @@ class DeviceManager extends ChangeNotifier {
       if (await _attach(make)) break;
     }
     reconnecting = false;
-    error = treadmill == null ? 'Koşu bandına yeniden bağlanılamadı.' : null;
+    error = treadmill == null
+        ? tx(
+            'Koşu bandına yeniden bağlanılamadı.',
+            'Could not reconnect to the treadmill.',
+          )
+        : null;
     notifyListeners();
   }
 
@@ -483,7 +513,9 @@ class WorkoutController extends ChangeNotifier {
 
   String get title =>
       program?.name ??
-      (goal.type == GoalType.none ? 'Serbest Koşu' : 'Hedef: ${goal.label}');
+      (goal.type == GoalType.none
+          ? tx('Serbest Koşu', 'Free Run')
+          : '${tx('Hedef', 'Goal')}: ${goal.label}');
 
   // ---------------- akış ----------------
 
@@ -540,7 +572,7 @@ class WorkoutController extends ChangeNotifier {
     _lastTick = _startTime;
     state = RunState.running;
     dev.keepAlive = true;
-    WorkoutBackground.start(title, 'Antrenman başladı');
+    WorkoutBackground.start(title, tx('Antrenman başladı', 'Workout started'));
     await t.start();
     if (program != null) {
       _applySegment(0);

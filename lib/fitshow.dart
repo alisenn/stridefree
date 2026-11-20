@@ -13,6 +13,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 import 'devices.dart';
+import 'l10n.dart';
 import 'models.dart';
 
 // Komut grupları
@@ -128,8 +129,9 @@ class FitShowTreadmill extends Treadmill {
   FitShowTreadmill._(this.device, this.speedFactor);
 
   @override
-  String get name =>
-      device.platformName.isNotEmpty ? device.platformName : 'FitShow bandı';
+  String get name => device.platformName.isNotEmpty
+      ? device.platformName
+      : tx('FitShow bandı', 'FitShow treadmill');
   @override
   Stream<TreadmillData> get data => _data.stream;
   @override

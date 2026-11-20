@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../importer.dart';
+import '../l10n.dart';
 import '../models.dart';
 import '../state.dart';
 
@@ -23,15 +24,15 @@ Future<void> saveTextFile(
       mimeType: mime,
     );
     if (uri != null && context.mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('$fileName kaydedildi')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(tx('$fileName kaydedildi', '$fileName saved'))),
+      );
     }
   } catch (e) {
     if (context.mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Kaydedilemedi: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(tx('Kaydedilemedi: $e', 'Could not save: $e'))),
+      );
     }
   }
 }
@@ -66,7 +67,11 @@ class _ImportScreenState extends State<ImportScreen> {
     setState(() => busy = false);
     if (!mounted) return;
     if (results.isEmpty) {
-      _snack(errors.isEmpty ? 'Dosya okunamadı.' : errors.join('\n'));
+      _snack(
+        errors.isEmpty
+            ? tx('Dosya okunamadı.', 'Could not read the file.')
+            : errors.join('\n'),
+      );
       return;
     }
     await _confirm(results, errors);
@@ -102,7 +107,10 @@ class _ImportScreenState extends State<ImportScreen> {
           String d(DateTime t) => '${t.day}.${t.month}.${t.year}';
           return AlertDialog(
             title: Text(
-              '${results.map((r) => r.format).toSet().join(', ')} içe aktar',
+              tx(
+                '${results.map((r) => r.format).toSet().join(', ')} içe aktar',
+                'Import ${results.map((r) => r.format).toSet().join(', ')}',
+              ),
             ),
             content: SingleChildScrollView(
               child: Column(
@@ -110,16 +118,26 @@ class _ImportScreenState extends State<ImportScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '${chosen.length} koşu/yürüyüş · ${km.toStringAsFixed(1)} km'
-                    '${dates.isEmpty ? '' : '\n${d(dates.first)} – ${d(dates.last)}'}',
+                    tx(
+                      '${chosen.length} koşu/yürüyüş · ${km.toStringAsFixed(1)} km'
+                          '${dates.isEmpty ? '' : '\n${d(dates.first)} – ${d(dates.last)}'}',
+                      '${chosen.length} runs/walks · ${km.toStringAsFixed(1)} km'
+                          '${dates.isEmpty ? '' : '\n${d(dates.first)} – ${d(dates.last)}'}',
+                    ),
                   ),
                   if (programs.isNotEmpty)
-                    Text('${programs.length} özel program'),
-                  if (settings != null) const Text('Profil ayarları'),
+                    Text(
+                      tx(
+                        '${programs.length} özel program',
+                        '${programs.length} custom ${programs.length == 1 ? 'program' : 'programs'}',
+                      ),
+                    ),
+                  if (settings != null)
+                    Text(tx('Profil ayarları', 'Profile settings')),
                   if (sources.length > 1) ...[
                     const SizedBox(height: 12),
-                    const Text(
-                      'Kaynak uygulamalar:',
+                    Text(
+                      tx('Kaynak uygulamalar:', 'Source apps:'),
                       style: TextStyle(fontWeight: FontWeight.w600),
                     ),
                     for (final e in sources.entries)
@@ -138,13 +156,19 @@ class _ImportScreenState extends State<ImportScreen> {
                   if (errors.isNotEmpty) ...[
                     const SizedBox(height: 12),
                     Text(
-                      'Okunamayan: ${errors.join(', ')}',
+                      tx(
+                        'Okunamayan: ${errors.join(', ')}',
+                        'Unreadable: ${errors.join(', ')}',
+                      ),
                       style: TextStyle(color: Theme.of(c).colorScheme.error),
                     ),
                   ],
                   const SizedBox(height: 8),
                   Text(
-                    'Zaten kayıtlı olan antrenmanlar atlanır.',
+                    tx(
+                      'Zaten kayıtlı olan antrenmanlar atlanır.',
+                      'Workouts already saved will be skipped.',
+                    ),
                     style: TextStyle(
                       fontSize: 12,
                       color: Theme.of(c).colorScheme.onSurfaceVariant,
@@ -156,14 +180,14 @@ class _ImportScreenState extends State<ImportScreen> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(c, false),
-                child: const Text('Vazgeç'),
+                child: Text(tx('Vazgeç', 'Cancel')),
               ),
               FilledButton(
                 onPressed:
                     chosen.isEmpty && programs.isEmpty && settings == null
                     ? null
                     : () => Navigator.pop(c, true),
-                child: const Text('İçe aktar'),
+                child: Text(tx('İçe aktar', 'Import')),
               ),
             ],
           );
@@ -179,8 +203,12 @@ class _ImportScreenState extends State<ImportScreen> {
     final pAdded = context.read<ProgramStore>().importMany(programs);
     if (settings != null) context.read<SettingsStore>().restore(settings);
     _snack(
-      '$added antrenman${pAdded > 0 ? ', $pAdded program' : ''} eklendi'
-      '${chosen.length - added > 0 ? ' (${chosen.length - added} tekrar atlandı)' : ''}.',
+      tx(
+        '$added antrenman${pAdded > 0 ? ', $pAdded program' : ''} eklendi'
+            '${chosen.length - added > 0 ? ' (${chosen.length - added} tekrar atlandı)' : ''}.',
+        '$added ${added == 1 ? 'workout' : 'workouts'}${pAdded > 0 ? ', $pAdded ${pAdded == 1 ? 'program' : 'programs'}' : ''} added'
+            '${chosen.length - added > 0 ? ' (${chosen.length - added} duplicates skipped)' : ''}.',
+      ),
     );
   }
 
@@ -193,7 +221,7 @@ class _ImportScreenState extends State<ImportScreen> {
     final n = DateTime.now();
     saveTextFile(
       context,
-      'stridefree-yedek-${n.year}-${n.month.toString().padLeft(2, '0')}-${n.day.toString().padLeft(2, '0')}.json',
+      'stridefree-${tx('yedek', 'backup')}-${n.year}-${n.month.toString().padLeft(2, '0')}-${n.day.toString().padLeft(2, '0')}.json',
       json,
       'application/json',
     );
@@ -213,7 +241,7 @@ class _ImportScreenState extends State<ImportScreen> {
     );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Verileri aktar')),
+      appBar: AppBar(title: Text(tx('Verileri aktar', 'Transfer data'))),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 700),
@@ -227,36 +255,59 @@ class _ImportScreenState extends State<ImportScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "Başka uygulamadan aktar",
+                        tx(
+                          'Başka uygulamadan aktar',
+                          'Import from another app',
+                        ),
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        "Strava, Apple Sağlık veya dosyalardaki eski koşularınızı tek seferde geçmişinize ekleyin:",
+                        tx(
+                          'Strava, Apple Sağlık veya dosyalardaki eski koşularınızı tek seferde geçmişinize ekleyin:',
+                          'Add your past runs from Strava, Apple Health or files to your history in one go:',
+                        ),
                         style: TextStyle(color: cs.onSurfaceVariant),
                       ),
                       const SizedBox(height: 8),
                       step(
                         Icons.directions_run,
-                        'Strava üzerinden',
-                        'strava.com → Ayarlar → Hesabım → "Hesabınızı indirin". '
-                            'Gelen zip içindeki activities.csv dosyasını seçin.',
+                        tx('Strava üzerinden', 'From Strava'),
+                        tx(
+                          'strava.com → Ayarlar → Hesabım → "Hesabınızı indirin". '
+                              'Gelen zip içindeki activities.csv dosyasını seçin.',
+                          'strava.com → Settings → My Account → "Download or Delete Your Account". '
+                              'Pick the activities.csv file from the zip you receive.',
+                        ),
                       ),
                       step(
                         Icons.favorite,
-                        'Apple Sağlık üzerinden (iPhone)',
-                        'Sağlık → profil resmi → "Tüm sağlık verilerini dışa aktar". '
-                            'export.zip içindeki export.xml dosyasını seçin; hangi uygulamanın kayıtlarının alınacağını seçebilirsiniz.',
+                        tx(
+                          'Apple Sağlık üzerinden (iPhone)',
+                          'From Apple Health (iPhone)',
+                        ),
+                        tx(
+                          'Sağlık → profil resmi → "Tüm sağlık verilerini dışa aktar". '
+                              'export.zip içindeki export.xml dosyasını seçin; hangi uygulamanın kayıtlarının alınacağını seçebilirsiniz.',
+                          'Health → profile picture → "Export All Health Data". '
+                              'Pick export.xml from export.zip; you can choose which apps\' records to import.',
+                        ),
                       ),
                       step(
                         Icons.description,
-                        'TCX / GPX dosyaları',
-                        'Garmin, Zwift, Strava vb. uygulamalardan dışa aktarılan dosyalar.',
+                        tx('TCX / GPX dosyaları', 'TCX / GPX files'),
+                        tx(
+                          'Garmin, Zwift, Strava vb. uygulamalardan dışa aktarılan dosyalar.',
+                          'Files exported from Garmin, Zwift, Strava and similar apps.',
+                        ),
                       ),
                       step(
                         Icons.table_chart,
-                        'Elle tablo (CSV)',
-                        'Sütunlar: tarih, süre, mesafe, kalori (ör. "05.11.2025 07:30, 32:10, 5.2, 310").',
+                        tx('Elle tablo (CSV)', 'Manual spreadsheet (CSV)'),
+                        tx(
+                          'Sütunlar: tarih, süre, mesafe, kalori (ör. "05.11.2025 07:30, 32:10, 5.2, 310").',
+                          'Columns: date, duration, distance, calories (e.g. "05.11.2025 07:30, 32:10, 5.2, 310").',
+                        ),
                       ),
                       const SizedBox(height: 12),
                       SizedBox(
@@ -271,9 +322,14 @@ class _ImportScreenState extends State<ImportScreen> {
                                   ),
                                 )
                               : const Icon(Icons.file_open),
-                          label: const Padding(
-                            padding: EdgeInsets.all(12),
-                            child: Text('Dosya seç ve içe aktar'),
+                          label: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Text(
+                              tx(
+                                'Dosya seç ve içe aktar',
+                                'Choose file and import',
+                              ),
+                            ),
                           ),
                           onPressed: busy ? null : _pick,
                         ),
@@ -290,19 +346,23 @@ class _ImportScreenState extends State<ImportScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Yedekleme',
+                        tx('Yedekleme', 'Backup'),
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Verileriniz yalnızca bu cihazda durur. Telefon değiştirirken yedek alın, '
-                        'yeni cihazda yukarıdaki "Dosya seç" ile geri yükleyin.',
+                        tx(
+                          'Verileriniz yalnızca bu cihazda durur. Telefon değiştirirken yedek alın, '
+                              'yeni cihazda yukarıdaki "Dosya seç" ile geri yükleyin.',
+                          'Your data stays only on this device. Make a backup when switching phones '
+                              'and restore it on the new device with "Choose file" above.',
+                        ),
                         style: TextStyle(color: cs.onSurfaceVariant),
                       ),
                       const SizedBox(height: 12),
                       OutlinedButton.icon(
                         icon: const Icon(Icons.save_alt),
-                        label: const Text('Yedek al (.json)'),
+                        label: Text(tx('Yedek al (.json)', 'Back up (.json)')),
                         onPressed: _backup,
                       ),
                     ],

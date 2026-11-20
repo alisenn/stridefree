@@ -179,9 +179,9 @@ Your FitShow module reports miles. Turn on **Profile → Treadmill speed in mile
 </details>
 
 <details>
-<summary><b>Is the UI available in English?</b></summary>
+<summary><b>Which languages does the app support?</b></summary>
 
-The app UI is currently in Turkish. English localization is on the roadmap — contributions welcome!
+English and Turkish. The app follows your phone's language; you can switch it any time in **Profile → Language**. Want your language? Translations are welcome!
 </details>
 
 ## 🗺 Roadmap
@@ -189,7 +189,8 @@ The app UI is currently in Turkish. English localization is on the roadmap — c
 - [x] FTMS & FitShow control, programs, goals, history
 - [x] Heart-rate straps, ACSM calories, manual incline
 - [x] Strava / Apple Health / TCX / GPX / CSV import, TCX export
-- [ ] English UI (and more languages)
+- [x] English & Turkish UI
+- [ ] More languages
 - [ ] Heart-rate–based calories and active vs. total calories
 - [ ] Apple Health / Health Connect sync
 - [ ] More real-world FitShow device testing

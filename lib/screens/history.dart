@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../l10n.dart';
 import '../models.dart';
 import '../state.dart';
 import '../stats.dart';
@@ -14,9 +15,11 @@ String fmtDate(DateTime d) =>
 String _fmtMetric(Metric m, double v) => switch (m) {
   Metric.distance => '${v.toStringAsFixed(v >= 100 ? 0 : 1)} km',
   Metric.time =>
-    v >= 120 ? '${(v / 60).toStringAsFixed(1)} sa' : '${v.round()} dk',
+    v >= 120
+        ? '${(v / 60).toStringAsFixed(1)} ${tx('sa', 'h')}'
+        : '${v.round()} ${tx('dk', 'min')}',
   Metric.calories => '${v.round()} kcal',
-  Metric.count => '${v.round()} antrenman',
+  Metric.count => tx('${v.round()} antrenman', '${v.round()} workouts'),
 };
 
 class HistoryScreen extends StatefulWidget {
@@ -53,9 +56,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
         ? prev.totalWithin(metric, span)
         : prev.total(metric);
     final prevName = switch (period) {
-      Period.week => ongoing ? 'geçen haftanın bu zamanına' : 'önceki haftaya',
-      Period.month => ongoing ? 'geçen ayın bu zamanına' : 'önceki aya',
-      Period.year => ongoing ? 'geçen yılın bu zamanına' : 'önceki yıla',
+      Period.week =>
+        ongoing
+            ? tx('geçen haftanın bu zamanına', 'this point last week')
+            : tx('önceki haftaya', 'the previous week'),
+      Period.month =>
+        ongoing
+            ? tx('geçen ayın bu zamanına', 'this point last month')
+            : tx('önceki aya', 'the previous month'),
+      Period.year =>
+        ongoing
+            ? tx('geçen yılın bu zamanına', 'this point last year')
+            : tx('önceki yıla', 'the previous year'),
       Period.all => '',
     };
 
@@ -64,22 +76,33 @@ class _HistoryScreenState extends State<HistoryScreen> {
       final pct = ((now - before) / before * 100).round();
       final up = pct >= 0;
       return Text(
-        '${up ? '▲' : '▼'} %${pct.abs()} · $prevName göre',
+        tx(
+          '${up ? '▲' : '▼'} %${pct.abs()} · $prevName göre',
+          '${up ? '▲' : '▼'} ${pct.abs()}% vs $prevName',
+        ),
         style: TextStyle(fontSize: 12, color: up ? cs.primary : cs.error),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Geçmiş & İstatistik')),
+      appBar: AppBar(
+        title: Text(tx('Geçmiş & İstatistik', 'History & Statistics')),
+      ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
         children: [
           SegmentedButton<Period>(
-            segments: const [
-              ButtonSegment(value: Period.week, label: Text('Hafta')),
-              ButtonSegment(value: Period.month, label: Text('Ay')),
-              ButtonSegment(value: Period.year, label: Text('Yıl')),
-              ButtonSegment(value: Period.all, label: Text('Tümü')),
+            segments: [
+              ButtonSegment(
+                value: Period.week,
+                label: Text(tx('Hafta', 'Week')),
+              ),
+              ButtonSegment(
+                value: Period.month,
+                label: Text(tx('Ay', 'Month')),
+              ),
+              ButtonSegment(value: Period.year, label: Text(tx('Yıl', 'Year'))),
+              ButtonSegment(value: Period.all, label: Text(tx('Tümü', 'All'))),
             ],
             showSelectedIcon: false,
             selected: {period},
@@ -145,10 +168,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         for (final m in Metric.values)
                           ChoiceChip(
                             label: Text(switch (m) {
-                              Metric.distance => 'Mesafe',
-                              Metric.time => 'Süre',
-                              Metric.calories => 'Kalori',
-                              Metric.count => 'Adet',
+                              Metric.distance => tx('Mesafe', 'Distance'),
+                              Metric.time => tx('Süre', 'Time'),
+                              Metric.calories => tx('Kalori', 'Calories'),
+                              Metric.count => tx('Adet', 'Count'),
                             }),
                             selected: metric == m,
                             onSelected: (_) => setState(() => metric = m),
@@ -172,36 +195,36 @@ class _HistoryScreenState extends State<HistoryScreen> {
             physics: const NeverScrollableScrollPhysics(),
             children: [
               MetricTile(
-                label: 'Mesafe',
+                label: tx('Mesafe', 'Distance'),
                 value: st.km().toStringAsFixed(1),
                 unit: 'km',
                 icon: Icons.straighten,
               ),
               MetricTile(
-                label: 'Süre',
+                label: tx('Süre', 'Time'),
                 value: (st.sec() / 3600).toStringAsFixed(1),
-                unit: 'sa',
+                unit: tx('sa', 'h'),
                 icon: Icons.timer,
               ),
               MetricTile(
-                label: 'Kalori',
+                label: tx('Kalori', 'Calories'),
                 value: st.kcal().toStringAsFixed(0),
                 unit: 'kcal',
                 icon: Icons.local_fire_department,
               ),
               MetricTile(
-                label: 'Antrenman',
+                label: tx('Antrenman', 'Workouts'),
                 value: '${st.count}',
                 icon: Icons.fitness_center,
               ),
               MetricTile(
-                label: 'Aktif gün',
+                label: tx('Aktif gün', 'Active days'),
                 value: '${st.activeDays}',
-                unit: 'gün',
+                unit: tx('gün', 'days'),
                 icon: Icons.event_available,
               ),
               MetricTile(
-                label: 'Ort. tempo',
+                label: tx('Ort. tempo', 'Avg pace'),
                 value: fmtPace(st.avgPace),
                 unit: '/km',
                 icon: Icons.speed,
@@ -217,14 +240,17 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   Expanded(
                     child: _Record(
                       icon: Icons.whatshot,
-                      label: 'Seri',
-                      value: '${h.streakDays} gün',
+                      label: tx('Seri', 'Streak'),
+                      value: tx(
+                        '${h.streakDays} gün',
+                        '${h.streakDays} ${h.streakDays == 1 ? 'day' : 'days'}',
+                      ),
                     ),
                   ),
                   Expanded(
                     child: _Record(
                       icon: Icons.emoji_events,
-                      label: 'En uzun koşu',
+                      label: tx('En uzun koşu', 'Longest run'),
                       value: best == null
                           ? '--'
                           : '${best.distanceKm.toStringAsFixed(2)} km',
@@ -233,7 +259,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   Expanded(
                     child: _Record(
                       icon: Icons.all_inclusive,
-                      label: 'Toplam',
+                      label: tx('Toplam', 'Total'),
                       value: '${h.totalKm.toStringAsFixed(0)} km',
                     ),
                   ),
@@ -243,7 +269,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            '${st.title} · ${st.count} antrenman',
+            tx(
+              '${st.title} · ${st.count} antrenman',
+              '${st.title} · ${st.count} ${st.count == 1 ? 'workout' : 'workouts'}',
+            ),
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 4),
@@ -253,8 +282,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
               child: Center(
                 child: Text(
                   h.sessions.isEmpty
-                      ? 'Henüz antrenman yok. İlk koşunu yap!'
-                      : 'Bu dönemde antrenman yok.',
+                      ? tx(
+                          'Henüz antrenman yok. İlk koşunu yap!',
+                          'No workouts yet. Go for your first run!',
+                        )
+                      : tx(
+                          'Bu dönemde antrenman yok.',
+                          'No workouts in this period.',
+                        ),
                   style: TextStyle(color: cs.onSurfaceVariant),
                 ),
               ),
@@ -306,15 +341,15 @@ class _SessionTile extends StatelessWidget {
           await showDialog<bool>(
             context: context,
             builder: (c) => AlertDialog(
-              title: const Text('Antrenman silinsin mi?'),
+              title: Text(tx('Antrenman silinsin mi?', 'Delete workout?')),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(c, false),
-                  child: const Text('Vazgeç'),
+                  child: Text(tx('Vazgeç', 'Cancel')),
                 ),
                 FilledButton(
                   onPressed: () => Navigator.pop(c, true),
-                  child: const Text('Sil'),
+                  child: Text(tx('Sil', 'Delete')),
                 ),
               ],
             ),
@@ -358,10 +393,13 @@ class SessionDetailScreen extends StatelessWidget {
     final hasHr = hrVals.any((v) => v > 0);
     return Scaffold(
       appBar: AppBar(
-        title: Text(isSummary ? 'Tebrikler!' : s.title),
+        title: Text(isSummary ? tx('Tebrikler!', 'Nice work!') : s.title),
         actions: [
           IconButton(
-            tooltip: 'TCX olarak kaydet (Strava / Garmin)',
+            tooltip: tx(
+              'TCX olarak kaydet (Strava / Garmin)',
+              'Save as TCX (Strava / Garmin)',
+            ),
             icon: const Icon(Icons.ios_share),
             onPressed: () => exportSessionTcx(context, s),
           ),
@@ -391,54 +429,54 @@ class SessionDetailScreen extends StatelessWidget {
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
                   MetricTile(
-                    label: 'Mesafe',
+                    label: tx('Mesafe', 'Distance'),
                     value: s.distanceKm.toStringAsFixed(2),
                     unit: 'km',
                     icon: Icons.straighten,
                   ),
                   MetricTile(
-                    label: 'Süre',
+                    label: tx('Süre', 'Time'),
                     value: fmtDuration(s.durationSec),
                     icon: Icons.timer,
                   ),
                   MetricTile(
-                    label: 'Kalori',
+                    label: tx('Kalori', 'Calories'),
                     value: s.kcal.toStringAsFixed(0),
                     unit: 'kcal',
                     icon: Icons.local_fire_department,
                   ),
                   MetricTile(
-                    label: 'Ort. hız',
+                    label: tx('Ort. hız', 'Avg speed'),
                     value: s.avgSpeed.toStringAsFixed(1),
-                    unit: 'km/s',
+                    unit: tx('km/s', 'km/h'),
                     icon: Icons.speed,
                   ),
                   MetricTile(
-                    label: 'Ort. tempo',
+                    label: tx('Ort. tempo', 'Avg pace'),
                     value: fmtPace(s.paceMinPerKm),
                     unit: '/km',
                     icon: Icons.av_timer,
                   ),
                   MetricTile(
-                    label: 'Maks hız',
+                    label: tx('Maks hız', 'Max speed'),
                     value: s.maxSpeed.toStringAsFixed(1),
-                    unit: 'km/s',
+                    unit: tx('km/s', 'km/h'),
                     icon: Icons.bolt,
                   ),
                   MetricTile(
-                    label: 'Ort. nabız',
+                    label: tx('Ort. nabız', 'Avg HR'),
                     value: s.avgHr?.toString() ?? '--',
                     unit: 'bpm',
                     icon: Icons.favorite,
                   ),
                   MetricTile(
-                    label: 'Maks nabız',
+                    label: tx('Maks nabız', 'Max HR'),
                     value: s.maxHr?.toString() ?? '--',
                     unit: 'bpm',
                     icon: Icons.monitor_heart,
                   ),
                   MetricTile(
-                    label: 'Tırmanış',
+                    label: tx('Tırmanış', 'Elevation'),
                     value: s.elevationM.toStringAsFixed(0),
                     unit: 'm',
                     icon: Icons.landscape,
@@ -447,19 +485,19 @@ class SessionDetailScreen extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               Text(
-                'Hız (km/s)',
+                tx('Hız (km/s)', 'Speed (km/h)'),
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 8),
               SampleLineChart(
                 values: s.speedSamples,
                 color: cs.primary,
-                unit: 'km/s',
+                unit: tx('km/s', 'km/h'),
               ),
               if (hasHr) ...[
                 const SizedBox(height: 20),
                 Text(
-                  'Nabız (bpm)',
+                  tx('Nabız (bpm)', 'Heart rate (bpm)'),
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: 8),
@@ -473,9 +511,9 @@ class SessionDetailScreen extends StatelessWidget {
                 const SizedBox(height: 24),
                 FilledButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Padding(
-                    padding: EdgeInsets.all(12),
-                    child: Text('Tamam'),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Text(tx('Tamam', 'Done')),
                   ),
                 ),
               ],

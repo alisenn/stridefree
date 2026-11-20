@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stride_free/l10n.dart';
 import 'package:stride_free/models.dart';
 import 'package:stride_free/stats.dart';
 
@@ -62,5 +63,17 @@ void main() {
     final m = computePeriod(data, Period.month, -10, now: DateTime(2026, 1, 5));
     expect(m.start, DateTime(2025, 3, 1));
     expect(m.title, 'Mart 2025');
+  });
+
+  test('İngilizce dönem başlıkları ve etiketler', () {
+    langOverride = AppLang.en;
+    addTearDown(() => langOverride = AppLang.tr);
+    final w = computePeriod(data, Period.week, 0, now: now);
+    expect(w.title, 'This week');
+    expect(w.labels.first, 'Mo');
+    final y = computePeriod(data, Period.year, 0, now: now);
+    expect(y.labels.first, 'Jan');
+    expect(builtInPrograms.first.name, 'Brisk Walk');
+    expect(const Goal(GoalType.time, 30).label, '30 min');
   });
 }
