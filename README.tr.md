@@ -16,6 +16,9 @@ ve tüm antrenmanlarınızı saklayın — hepsi cihazınızda, hepsi ücretsiz.
 [![PR'lar açık](https://img.shields.io/badge/PR-a%C3%A7%C4%B1k-brightgreen?style=flat-square)](#-katk%C4%B1da-bulunun)
 [![GitHub yıldızları](https://img.shields.io/github/stars/alisenn/stridefree?style=flat-square&color=yellow)](https://github.com/alisenn/stridefree/stargazers)
 
+### [▶ Tarayıcıda deneyin](https://alisenn.github.io/stridefree/)
+<sub>Sanal bant bağlamak için <b>Demo</b>'ya dokunun — cihaz gerekmez.</sub>
+
 [Özellikler](#-özellikler) ·
 [Desteklenen bantlar](#-desteklenen-bantlar) ·
 [Mağazalar](#-mağazalar) ·
@@ -109,6 +112,7 @@ Koşu bantlarının çoğu, programları, geçmişi hatta basit hız kontrolün�
 | --- | --- |
 | **iOS** | App Store incelemesinde |
 | **Android** | Google Play kapalı testte — herkese açık sürüm yakında |
+| **Web demo** | [alisenn.github.io/stridefree](https://alisenn.github.io/stridefree/) — Demo modu her tarayıcıda; gerçek bant Chrome / Edge'de Web Bluetooth ile |
 | **Diğerleri** | [Kaynaktan derleyin](#-kaynaktan-derleme) |
 
 ⭐ Mağazalara çıktığında haberdar olmak için **repoya yıldız verin**.

@@ -16,6 +16,9 @@ and keep every workout — all on your device, all for free.
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square)](#-contributing)
 [![GitHub stars](https://img.shields.io/github/stars/alisenn/stridefree?style=flat-square&color=yellow)](https://github.com/alisenn/stridefree/stargazers)
 
+### [▶ Try it in your browser](https://alisenn.github.io/stridefree/)
+<sub>Tap <b>Demo</b> to connect a simulated treadmill — no hardware needed.</sub>
+
 [Features](#-features) ·
 [Supported treadmills](#-supported-treadmills) ·
 [Get it](#-get-it) ·
@@ -111,6 +114,7 @@ FTMS is tried first; you can prefer FitShow in **Profile**. Some FitShow modules
 | --- | --- |
 | **iOS** | In App Store review |
 | **Android** | Google Play closed testing — public release soon |
+| **Web demo** | [alisenn.github.io/stridefree](https://alisenn.github.io/stridefree/) — Demo mode in any browser; real treadmills via Web Bluetooth in Chrome / Edge |
 | **Everything else** | [Build from source](#-build-from-source) |
 
 ⭐ **Star the repo** to get notified when it lands on the stores.
