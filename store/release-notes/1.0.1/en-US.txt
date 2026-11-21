@@ -1,0 +1,5 @@
+• English UI: follows your phone's language, change it in Profile → Language
+• Step count: estimated from height and speed when the treadmill doesn't count steps
+• Manual incline for treadmills with fold-out legs
+• Fixed speed and calories showing 0 on some FTMS treadmills
+• Fixed layout overflow on the summary screen and chart labels

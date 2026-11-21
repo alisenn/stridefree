@@ -1,0 +1,5 @@
+• İngilizce arayüz: uygulama telefonun diline göre açılır, Profil → Dil'den değiştirilebilir
+• Adım sayısı: bant saymıyorsa boy ve hızdan tahmin edilir (Profil'e boy eklendi)
+• Manuel eğim: ayaklı bantlar için eğim ayarı (ör. Relax RL-890 için %5)
+• FTMS bantlarda hız ve kalorinin 0 görünmesi düzeltildi
+• Özet ekranında taşmalar ve grafik etiketleri düzeltildi
