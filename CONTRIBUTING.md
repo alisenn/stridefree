@@ -66,7 +66,8 @@ Today the app uses `tx('Türkçe', 'English')` pairs. To add a third language, o
 
 1. Bump `version:` in `pubspec.yaml` (both the name and the build number).
 2. Write release notes in `store/release-notes/<version>/tr-TR.txt` and `en-US.txt` (max 500 chars).
-3. `python store/tools/play_upload.py --build` to validate, then `--commit` to send for review.
+3. Android: `python store/tools/play_upload.py --build` to validate, then `--commit` to send for review.
+4. iOS (macOS + Xcode): `python3 store/tools/appstore_upload.py --build` builds, uploads (also lands in TestFlight), creates the App Store version, fills "What's New" and attaches the build; add `--commit` to send it to App Review. Apple reviews one version at a time, so wait until the previous one is live. Credentials stay outside the repo (`~/stridefree-keys/appstore.json` + the `.p8` key in `~/.appstoreconnect/private_keys/`).
 
 ## License
 

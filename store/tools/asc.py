@@ -1,11 +1,19 @@
 """Küçük App Store Connect API yardımcısı (JWT ile).
-Kullanım: ASC_KEY_ID=... ASC_ISSUER_ID=... python asc.py GET /v1/apps
+Kullanım: python asc.py GET /v1/apps
+
+Kimlik (repoya girmez), sırasıyla:
+    ASC_KEY_ID / ASC_ISSUER_ID ortam değişkenleri
+    ~/stridefree-keys/appstore.json  →  {"key_id": "...", "issuer_id": "..."}
 Anahtar dosyası ~/.appstoreconnect/private_keys/AuthKey_<KEY_ID>.p8 konumunda olmalı."""
 import json, os, sys, time, urllib.request, urllib.error
 import jwt
 
-KEY_ID = os.environ["ASC_KEY_ID"]
-ISSUER = os.environ["ASC_ISSUER_ID"]
+_CFG = os.path.expanduser("~/stridefree-keys/appstore.json")
+_cfg = json.load(open(_CFG)) if os.path.exists(_CFG) else {}
+KEY_ID = os.environ.get("ASC_KEY_ID") or _cfg.get("key_id")
+ISSUER = os.environ.get("ASC_ISSUER_ID") or _cfg.get("issuer_id")
+if not KEY_ID or not ISSUER:
+    sys.exit(f"✗ App Store Connect kimliği yok: ASC_KEY_ID/ASC_ISSUER_ID ya da {_CFG}")
 KEY_PATH = os.path.expanduser(f"~/.appstoreconnect/private_keys/AuthKey_{KEY_ID}.p8")
 
 
