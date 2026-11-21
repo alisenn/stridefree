@@ -102,7 +102,7 @@ Koşu bantlarının çoğu, programları, geçmişi hatta basit hız kontrolün�
 | Bant | Protokol | Durum |
 | --- | --- | --- |
 | Relax RL-890 | FTMS | ✅ Hız, mesafe, kalori · manuel eğim ayakları |
-| *Sizin bandınız?* | | [Bildirin →](https://github.com/alisenn/stridefree/issues/new?title=Cihaz%20raporu%3A%20&body=Marka%2Fmodel%3A%0AUygulamada%20g%C3%B6r%C3%BCnen%20protokol%3A%0A%C3%87al%C4%B1%C5%9Fanlar%3A%0A%C3%87al%C4%B1%C5%9Fmayanlar%3A) |
+| *Sizin bandınız?* | | [Bildirin →](https://github.com/alisenn/stridefree/issues/new?template=device_report.yml) |
 
 > FitShow desteği topluluğun belgelediği davranışa dayanır ve gerçek cihazlarda sınırlı test edildi. Bandınızda bir sorun varsa marka/modeliyle bir issue açın — yapabileceğiniz en değerli katkı bu.
 
@@ -180,7 +180,7 @@ Bir fikriniz mi var? [Issue açın](https://github.com/alisenn/stridefree/issues
 
 ## 🤝 Katkıda bulunun
 
-Her boyutta katkıya açığız:
+Her boyutta katkıya açığız — ayrıntılar [CONTRIBUTING.md](CONTRIBUTING.md) ve [Davranış Kuralları](CODE_OF_CONDUCT.md)'nda:
 
 1. **Cihaz raporu** — hangi bandı denediğinizi ve neyin çalıştığını yazın.
 2. **Hata bildirimi** — adımlar ve Bluetooth ile ilgiliyse marka/model.

@@ -1,0 +1,44 @@
+name: 🐞 Bug report
+description: Something doesn't work as expected
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: "Türkçe yazabilirsiniz. If it's a security problem, please use the [private report](https://github.com/alisenn/stridefree/security/advisories/new) instead."
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: And what did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Connect Demo
+        2. Start "HIIT 20"
+        3. ...
+    validations:
+      required: true
+  - type: input
+    id: treadmill
+    attributes:
+      label: Treadmill (or Demo)
+      placeholder: e.g. Relax RL-890 (FTMS) / Demo
+  - type: input
+    id: platform
+    attributes:
+      label: Phone / browser and OS
+      placeholder: e.g. Pixel 8, Android 16 / Chrome 157 on Windows
+  - type: input
+    id: version
+    attributes:
+      label: App version
+      placeholder: e.g. 1.0.1
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots or logs
+      description: Drag images here. Please don't include personal data.

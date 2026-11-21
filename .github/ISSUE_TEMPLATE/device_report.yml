@@ -1,0 +1,56 @@
+name: 🏃 Device report
+description: Tell us how StrideFree works with your treadmill or heart-rate strap
+title: "Device report: "
+labels: ["device report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks! Device reports are the most useful contribution — they tell everyone which treadmills work.
+        Türkçe yazabilirsiniz.
+  - type: input
+    id: model
+    attributes:
+      label: Brand and model
+      placeholder: e.g. Relax RL-890
+    validations:
+      required: true
+  - type: dropdown
+    id: protocol
+    attributes:
+      label: Protocol shown when connecting
+      options:
+        - FTMS
+        - FitShow
+        - Not found / didn't connect
+        - Not sure
+    validations:
+      required: true
+  - type: checkboxes
+    id: works
+    attributes:
+      label: What works?
+      options:
+        - label: Connects
+        - label: Speed is shown correctly
+        - label: Speed can be changed from the app
+        - label: Incline (motorized)
+        - label: Distance
+        - label: Start / pause / stop
+        - label: Heart rate from the treadmill
+  - type: textarea
+    id: notes
+    attributes:
+      label: What doesn't work / notes
+      description: Wrong speeds (e.g. 1.6× off), disconnects, anything odd.
+  - type: input
+    id: platform
+    attributes:
+      label: Phone and OS
+      placeholder: e.g. Samsung Galaxy M31, Android 12 / iPhone 15, iOS 19
+  - type: input
+    id: version
+    attributes:
+      label: App version
+      description: From the Play Store / App Store page, or "web demo"
+      placeholder: e.g. 1.0.1

@@ -104,7 +104,7 @@ FTMS is tried first; you can prefer FitShow in **Profile**. Some FitShow modules
 | Treadmill | Protocol | Status |
 | --- | --- | --- |
 | Relax RL-890 | FTMS | ✅ Speed, distance, calories · manual incline legs |
-| *Your treadmill?* | | [Report it →](https://github.com/alisenn/stridefree/issues/new?title=Device%20report%3A%20&body=Brand%2Fmodel%3A%0AProtocol%20shown%20in%20app%3A%0AWhat%20works%3A%0AWhat%20doesn%27t%3A) |
+| *Your treadmill?* | | [Report it →](https://github.com/alisenn/stridefree/issues/new?template=device_report.yml) |
 
 > FitShow support is based on community-documented behaviour and has had limited testing on real hardware. If something is off on your treadmill, please open an issue with the brand and model — it's the most useful contribution you can make.
 
@@ -204,7 +204,7 @@ Have an idea? [Open an issue](https://github.com/alisenn/stridefree/issues).
 
 ## 🤝 Contributing
 
-Contributions of every size are welcome:
+Contributions of every size are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) and our [Code of Conduct](CODE_OF_CONDUCT.md):
 
 1. **Device reports** — tell us which treadmill you tested and what worked.
 2. **Bug reports** — steps to reproduce plus brand/model if Bluetooth-related.

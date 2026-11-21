@@ -1,0 +1,22 @@
+name: 💡 Feature request
+description: Suggest an idea for StrideFree
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What would you like to do?
+      description: Describe the problem or the workout you have in mind, not just the solution.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: How could StrideFree help?
+  - type: checkboxes
+    id: principles
+    attributes:
+      label: StrideFree principles
+      options:
+        - label: This doesn't need ads, an account, a server or analytics
+          required: true
