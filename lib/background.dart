@@ -2,8 +2,9 @@
 //
 // Android: bildirim çubuğunda görünen bir "ön plan servisi" başlatılır; sistem,
 //          bu servis çalışırken uygulamayı (YouTube vb. açıkken bile) kapatmaz.
-// iOS:     Info.plist'teki `bluetooth-central` arka plan modu sayesinde bant bağlıyken
-//          Bluetooth verisi geldikçe uygulama çalışmaya devam eder; ek servis gerekmez.
+// iOS:     arka plan modu kullanılmıyor (App Review 2.5.4); uygulama askıya alınır.
+//          Geri dönüldüğünde WorkoutController aradaki süreyi bandın sayaçlarından
+//          telafi eder; antrenman her 5 sn ve arka plana geçerken kaydedilir.
 import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart';

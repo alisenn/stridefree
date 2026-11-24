@@ -22,6 +22,6 @@ None. The app works the same in all regions.
 6. REGULATED INDUSTRY / THIRD-PARTY MATERIAL
 Not applicable. The app is not a medical device and contains no protected third-party content. Bluetooth FTMS is a public Bluetooth SIG standard. FitShow is a trademark of its owner; StrideFree is not affiliated with it and only talks to treadmills that contain a FitShow module, as their owners' own equipment.
 
-Background mode: bluetooth-central keeps the workout in sync with the treadmill while the user switches to another app (for example, watching a video while walking), so the workout is not lost.
+Bluetooth: the app uses Core Bluetooth (Bluetooth Low Energy) to talk to the treadmill (FTMS service 0x1826 / FitShow service 0xFFF0) and to an optional heart-rate strap (0x180D). Tap "Bağlan" (Connect) on the home screen to see the Bluetooth scan. Following the previous review (Guideline 2.5.4), this build no longer declares any background modes (UIBackgroundModes removed); when the user returns to the app it catches up from the treadmill's own counters.
 
 Source code: https://github.com/alisenn/stridefree

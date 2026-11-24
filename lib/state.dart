@@ -458,6 +458,14 @@ class WorkoutController extends ChangeNotifier {
   StreamSubscription? _dataSub;
   int? _lastDeviceDist;
   bool _usingDeviceDist = false;
+  int? _lastDeviceElapsed;
+  DateTime? _lastDataAt;
+
+  // iOS uygulamayı arka planda askıya alır (Bluetooth arka plan modu yok).
+  // Geri dönüldüğünde aradaki süre bandın kendi sayaçlarından telafi edilir.
+  static const _gapThreshold = 15.0; // sn
+  double _pendingGap = 0; // telafi edilmeyi bekleyen askı süresi
+  double _lastV = 0, _lastInc = 0; // askıya alınmadan önceki hız/eğim
   int? _lastDeviceSteps;
   bool _usingDeviceSteps = false;
   DateTime? _startTime;
@@ -562,6 +570,10 @@ class WorkoutController extends ChangeNotifier {
     _maxHr = 0;
     _lastDeviceDist = null;
     _usingDeviceDist = false;
+    _lastDeviceElapsed = null;
+    _lastDataAt = null;
+    _pendingGap = 0;
+    _lastV = _lastInc = 0;
     _lastDeviceSteps = null;
     _usingDeviceSteps = false;
     _accumSec = 0;
@@ -597,11 +609,37 @@ class WorkoutController extends ChangeNotifier {
   }
 
   void _onData(TreadmillData d) {
+    final now = DateTime.now();
+    final sinceData = _lastDataAt == null
+        ? 0.0
+        : now.difference(_lastDataAt!).inMilliseconds / 1000;
+    _lastDataAt = now;
+    // Bağlantı koptuysa da bant saymaya devam etmiş olabilir: yeniden bağlanınca say.
+    final counting = state == RunState.running || pausedByDisconnect;
+
+    // Askıdan dönüş: bandın süre sayacı ne kadar ilerlediyse o kadarını telafi et
+    // (bant o arada durduysa süre sayacı da durur, fazla sayılmaz).
+    if (state == RunState.running && sinceData > _gapThreshold) {
+      final e = d.elapsedS;
+      final last = _lastDeviceElapsed;
+      final double ran;
+      if (e != null && last != null && e >= last) {
+        ran = (e - last).toDouble().clamp(0.0, sinceData);
+      } else {
+        // Bant süre bildirmiyor: hâlâ dönüyorsa tüm arayı say, durduysa sayma.
+        ran = (d.speedKmh ?? 0) >= 0.5 ? sinceData : 0;
+      }
+      _creditGap(ran);
+    }
+    if (d.elapsedS != null) _lastDeviceElapsed = d.elapsedS;
+
     final dist = d.totalDistanceM;
     if (dist != null) {
-      if (state == RunState.running && _lastDeviceDist != null) {
+      if (counting && _lastDeviceDist != null) {
         final delta = dist - _lastDeviceDist!;
-        if (delta >= 0 && delta < 5000) {
+        // 25 km/s'i aşan sıçramalar sayaç sıfırlanması/bozuk veridir.
+        final maxDelta = 7 * (sinceData < 1 ? 1 : sinceData) + 100;
+        if (delta >= 0 && delta <= maxDelta) {
           distanceM += delta;
           elevationM += delta * (incline / 100);
           _usingDeviceDist = true;
@@ -611,7 +649,7 @@ class WorkoutController extends ChangeNotifier {
     }
     final st = d.steps;
     if (st != null) {
-      if (state == RunState.running && _lastDeviceSteps != null) {
+      if (counting && _lastDeviceSteps != null) {
         final delta = st - _lastDeviceSteps!;
         if (delta >= 0 && delta < 1000) {
           steps += delta;
@@ -634,6 +672,9 @@ class WorkoutController extends ChangeNotifier {
 
     // Bant bağlantısı koptuysa otomatik duraklat (süre ve mesafe saymayı bırak).
     if (dev.treadmill == null) {
+      // Askıdayken koptuysa bandın sayaçları okunamaz: aradaki süreyi son hızla
+      // say (en fazla 1 saat).
+      if (_pendingGap > 0) _creditGap(_pendingGap.clamp(0, 3600).toDouble());
       _pauseClock();
       state = RunState.paused;
       pausedByDisconnect = true;
@@ -644,15 +685,24 @@ class WorkoutController extends ChangeNotifier {
     }
 
     final now = DateTime.now();
-    // Uygulama bir süre uyuduysa aradaki süreyi de hesaba kat (en fazla 10 dk).
-    final dt = (now.difference(_lastTick ?? now).inMilliseconds / 1000).clamp(
-      0.0,
-      600.0,
-    );
+    var dt = now.difference(_lastTick ?? now).inMilliseconds / 1000;
     _lastTick = now;
     elapsed = _elapsedNow();
+    if (dt > _gapThreshold) {
+      // Uygulama askıdaydı. Mesafeyi burada tahmin etme; bandın sayaçları gelince
+      // _onData telafi eder (veri gelmeden bağlantı koparsa yukarıda son hızla).
+      final dataAlreadyBack =
+          _lastDataAt != null &&
+          now.difference(_lastDataAt!).inMilliseconds / 1000 < dt;
+      if (!dataAlreadyBack) _pendingGap = dt;
+      dt = 0;
+    }
 
     final v = speed;
+    if (dt > 0) {
+      _lastV = v;
+      _lastInc = incline;
+    }
     if (!_usingDeviceDist) {
       distanceM += v / 3.6 * dt;
       elevationM += v / 3.6 * dt * (incline / 100);
@@ -723,6 +773,20 @@ class WorkoutController extends ChangeNotifier {
   void _resumeClock() {
     _runningSince = DateTime.now();
     _lastTick = _runningSince;
+  }
+
+  /// Askıdaki [sec] saniyeyi askıdan önceki hız ve eğimle ekle.
+  void _creditGap(double sec) {
+    _pendingGap = 0;
+    if (sec <= 0 || _lastV < 0.5) return;
+    if (!_usingDeviceDist) {
+      distanceM += _lastV / 3.6 * sec;
+      elevationM += _lastV / 3.6 * sec * (_lastInc / 100);
+    }
+    kcal += _kcalPerSec(_lastV, _lastInc) * sec;
+    if (!_usingDeviceSteps) {
+      steps += _lastV / 3.6 * sec / strideLengthM(settings.heightCm, _lastV);
+    }
   }
 
   /// ACSM metabolik denklemleri – kilonuza göre kalori

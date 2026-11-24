@@ -1,7 +1,7 @@
 # App Store bilgileri (Türkçe)
 
 **Uygulama adı (30):** StrideFree: Koşu Bandı Kontrol
-**Alt başlık (30):** Ücretsiz bant ve antrenman
+**Alt başlık (30):** Bant kontrolü, program, nabız
 **Kategori:** Sağlık ve Fitness (ikincil: Spor)
 **Fiyat:** Ücretsiz · uygulama içi satın alma yok
 **Yaş sınırı:** 4+
@@ -10,7 +10,9 @@
 **Gizlilik etiketi:** Veri Toplanmıyor (Data Not Collected)
 
 ## Tanıtım metni (170)
-Abonelik yok, reklam yok, kilitli özellik yok. Koşu bandınızı telefondan yönetin; programlar, istatistikler ve nabız takibi tamamen ücretsiz.
+Koşu bandınızı telefondan yönetin: hız ve eğim kontrolü, hazır ve özel programlar, nabız takibi, haftalık, aylık ve yıllık istatistikler.
+
+> Apple 2.3.7: ad, alt başlık ve tanıtım metninde fiyat/"ücretsiz" geçmemeli; yalnızca açıklamada olabilir.
 
 ## Açıklama
 StrideFree, Bluetooth'lu koşu bantları için tamamen ücretsiz ve açık kaynaklı bir kontrol uygulamasıdır. Başka uygulamalarda ücretli olan her şey burada ücretsiz.
