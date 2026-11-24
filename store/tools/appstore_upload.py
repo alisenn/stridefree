@@ -198,6 +198,14 @@ def submit(version_id):
             "relationships": {"reviewSubmission": {"data": {"type": "reviewSubmissions", "id": sub}},
                               "appStoreVersion": {"data": {"type": "appStoreVersions", "id": version_id}}}}},
              "sürüm incelemeye eklenemedi")
+    # Reddedilmiş bir incelemeye yeniden gönderirken öğeler "çözüldü" işaretlenmeli
+    # (App Store Connect'teki "Update Review" düğmesinin yaptığı).
+    for i in call("GET", f"/v1/reviewSubmissions/{sub}/items")["data"]:
+        if i["attributes"].get("state") == "REJECTED":
+            call("PATCH", f"/v1/reviewSubmissionItems/{i['id']}", {"data": {
+                "type": "reviewSubmissionItems", "id": i["id"], "attributes": {"resolved": True}}},
+                 "reddedilen öğe çözüldü işaretlenemedi")
+            print("• reddedilen inceleme öğesi 'çözüldü' işaretlendi")
     # Derleme yeni bağlandıysa Apple birkaç dakika "hazır değil" diyebilir.
     for attempt in range(20):
         st, js = asc.call("PATCH", f"/v1/reviewSubmissions/{sub}", {"data": {
