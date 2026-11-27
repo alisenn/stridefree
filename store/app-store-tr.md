@@ -6,13 +6,13 @@
 **Fiyat:** Ücretsiz · uygulama içi satın alma yok
 **Yaş sınırı:** 4+
 **Gizlilik politikası:** https://github.com/alisenn/stridefree/blob/main/PRIVACY.md
-**Destek:** https://github.com/alisenn/stridefree/issues
+**Destek:** https://alisenn.github.io/stridefree/support/
 **Gizlilik etiketi:** Veri Toplanmıyor (Data Not Collected)
 
 ## Tanıtım metni (170)
 Koşu bandınızı telefondan yönetin: hız ve eğim kontrolü, hazır ve özel programlar, nabız takibi, haftalık, aylık ve yıllık istatistikler.
 
-> Apple 2.3.7: ad, alt başlık ve tanıtım metninde fiyat/"ücretsiz" geçmemeli; yalnızca açıklamada olabilir.
+> Apple 2.3.7: ad, alt başlık, tanıtım metni ve ekran görüntülerinde fiyat/"ücretsiz" geçmemeli; yalnızca açıklamada olabilir.
 
 ## Açıklama
 StrideFree, Bluetooth'lu koşu bantları için tamamen ücretsiz ve açık kaynaklı bir kontrol uygulamasıdır. Başka uygulamalarda ücretli olan her şey burada ücretsiz.
