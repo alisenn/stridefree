@@ -25,3 +25,5 @@ Not applicable. The app is not a medical device and contains no protected third-
 Bluetooth: the app uses Core Bluetooth (Bluetooth Low Energy) to talk to the treadmill (FTMS service 0x1826 / FitShow service 0xFFF0) and to an optional heart-rate strap (0x180D). Tap "Bağlan" (Connect) on the home screen to see the Bluetooth scan. Following the previous review (Guideline 2.5.4), this build no longer declares any background modes (UIBackgroundModes removed); when the user returns to the app it catches up from the treadmill's own counters.
 
 Source code: https://github.com/alisenn/stridefree
+
+Previous review (Guidelines 1.5 and 2.3.7): the first screenshot no longer shows any price/"free" text, and the Support URL now points to a support page with FAQ and a contact form: https://alisenn.github.io/stridefree/support/
