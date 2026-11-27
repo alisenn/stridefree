@@ -26,4 +26,4 @@ Bluetooth: the app uses Core Bluetooth (Bluetooth Low Energy) to talk to the tre
 
 Source code: https://github.com/alisenn/stridefree
 
-Previous review (Guidelines 1.5 and 2.3.7): the first screenshot no longer shows any price/"free" text, and the Support URL now points to a support page with FAQ and a contact form: https://alisenn.github.io/stridefree/support/
+Previous review (Guidelines 1.5 and 2.3.7): the first screenshot no longer shows any price/"free" text, and the Support URL now points to a support page with FAQ, a contact form and a support email (canykimy@gmail.com): https://alisenn.github.io/stridefree/support/

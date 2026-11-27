@@ -3,86 +3,163 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>StrideFree Destek / Support</title>
+<title>StrideFree Destek</title>
 <meta name="description" content="StrideFree koşu bandı uygulaması için destek, sık sorulan sorular ve iletişim. Support, FAQ and contact for the StrideFree treadmill app.">
 <link rel="icon" href="../favicon.png">
 <style>
-  :root { --bg:#12140e; --card:#1d2019; --text:#e6e8df; --muted:#a9ad9f; --accent:#b2d08b; --line:#2e3228; }
-  * { box-sizing: border-box; }
+  :root { --bg:#12140e; --card:#1d2019; --card2:#252920; --text:#e6e8df; --muted:#a9ad9f; --accent:#b2d08b; --accent-ink:#1d2a10; --line:#2e3228; }
+  * { box-sizing:border-box; }
   body { margin:0; background:var(--bg); color:var(--text); font:16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-  main { max-width:760px; margin:0 auto; padding:32px 16px 64px; }
-  h1 { font-size:2rem; margin:0 0 4px; }
-  h2 { font-size:1.3rem; margin:40px 0 12px; padding-top:16px; border-top:1px solid var(--line); }
-  h3 { font-size:1.05rem; margin:20px 0 4px; }
-  p, li { color:var(--text); }
-  .muted { color:var(--muted); }
-  a { color:var(--accent); }
-  .card { background:var(--card); border-radius:16px; padding:16px 20px; margin:16px 0; }
-  .lang { display:flex; gap:12px; margin:12px 0 24px; }
-  ul { padding-left:20px; }
+  main { max-width:1000px; margin:0 auto; padding:24px 16px 64px; }
+  header { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .brand { font-weight:800; font-size:1.3rem; }
+  .langs button { background:none; border:1px solid var(--line); color:var(--muted); border-radius:999px; padding:4px 12px; font:inherit; font-size:.85rem; cursor:pointer; }
+  .langs button.on { color:var(--accent-ink); background:var(--accent); border-color:var(--accent); }
+  .hero { text-align:center; max-width:640px; margin:40px auto 32px; }
+  .hero h1 { font-size:2rem; margin:0; line-height:1.2; }
+  .hero p { color:var(--muted); margin:10px 0 0; }
+  .pill { display:inline-block; margin-top:14px; background:rgba(178,208,139,.12); color:var(--accent); padding:6px 12px; border-radius:999px; font-size:.8rem; font-weight:600; }
+  .grid { display:grid; gap:32px; grid-template-columns:1fr; }
+  @media (min-width:860px) { .grid { grid-template-columns:7fr 5fr; } }
+  h2 { font-size:1.15rem; margin:0 0 12px; }
+  details { background:var(--card); border:1px solid var(--line); border-radius:16px; margin-bottom:10px; overflow:hidden; }
+  summary { cursor:pointer; padding:14px 18px; font-weight:600; list-style:none; display:flex; justify-content:space-between; gap:12px; }
+  summary::-webkit-details-marker { display:none; }
+  summary::after { content:"⌄"; color:var(--muted); transition:transform .2s; }
+  details[open] summary::after { transform:rotate(180deg); }
+  details p, details ul { margin:0; padding:0 18px 16px; color:var(--muted); font-size:.95rem; }
+  details ul { padding-left:36px; }
+  .mailcard { margin-top:20px; border-radius:16px; padding:20px; background:linear-gradient(135deg,#3a4a2a,#1d2019); border:1px solid var(--line); }
+  .mailcard h3 { margin:0; font-size:1.05rem; }
+  .mailcard p { margin:6px 0 14px; color:var(--muted); font-size:.9rem; }
+  .btn { display:inline-flex; align-items:center; gap:8px; background:var(--accent); color:var(--accent-ink); padding:10px 16px; border-radius:12px; font-weight:700; text-decoration:none; border:0; font:inherit; font-weight:700; cursor:pointer; }
+  .form { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:20px; }
+  label { display:block; font-size:.8rem; font-weight:700; margin:12px 0 4px; }
+  input, select, textarea { width:100%; background:var(--card2); color:var(--text); border:1px solid var(--line); border-radius:12px; padding:10px 12px; font:inherit; font-size:.95rem; }
+  input:focus, select:focus, textarea:focus { outline:none; border-color:var(--accent); }
+  .row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .form .btn { width:100%; justify-content:center; margin-top:16px; }
+  .note { color:var(--muted); font-size:.8rem; margin-top:10px; }
+  footer { margin-top:48px; text-align:center; color:var(--muted); font-size:.85rem; }
+  footer a, .note a { color:var(--accent); }
+  [data-en] { display:none; }
+  html[lang=en] [data-tr] { display:none; }
+  html[lang=en] [data-en] { display:revert; }
 </style>
 </head>
 <body>
 <main>
-  <h1>StrideFree</h1>
-  <p class="muted">Destek · Support</p>
-  <nav class="lang"><a href="#tr">Türkçe</a><a href="#en">English</a></nav>
+  <header>
+    <div class="brand">StrideFree</div>
+    <div class="langs"><button id="b-tr" class="on" onclick="setLang('tr')">TR</button> <button id="b-en" onclick="setLang('en')">EN</button></div>
+  </header>
 
-  <section id="tr">
-    <h2>Destek</h2>
-    <div class="card">
-      <h3>Bize ulaşın</h3>
-      <p>Soru, sorun veya öneriniz için <a href="https://github.com/alisenn/stridefree/issues/new/choose">destek talebi açın</a>. Bandınızın marka/modelini, telefon modelinizi ve sorunu nasıl yaşadığınızı yazın. Genellikle birkaç gün içinde yanıt veriyoruz.</p>
-      <p>Önceki talepler: <a href="https://github.com/alisenn/stridefree/issues">github.com/alisenn/stridefree/issues</a></p>
-    </div>
+  <div class="hero">
+    <h1><span data-tr>Destek ve Yardım Merkezi</span><span data-en>Support &amp; Help Center</span></h1>
+    <p><span data-tr>Sorularınız, sorunlarınız ve önerileriniz için buradayız.</span><span data-en>We're here to help with your questions, problems and ideas.</span></p>
+    <div class="pill"><span data-tr>48 saat içinde yanıt</span><span data-en>Reply within 48 hours</span></div>
+  </div>
 
-    <h3>Bandım listede görünmüyor</h3>
-    <ul>
-      <li>Telefonun Bluetooth'u açık olmalı ve StrideFree'ye Bluetooth izni verilmiş olmalı (Ayarlar › StrideFree › Bluetooth).</li>
-      <li>Bandı açın; bandın kendi uygulaması veya başka bir telefon bağlıysa önce onu ayırın.</li>
-      <li>StrideFree, Bluetooth FTMS uyumlu bantlarla ve FitShow modüllü bantlarla çalışır.</li>
-    </ul>
+  <div class="grid">
+    <section>
+      <h2><span data-tr>Sıkça Sorulan Sorular</span><span data-en>Frequently Asked Questions</span></h2>
 
-    <h3>Bağlantı koptu</h3>
-    <p>Antrenman otomatik duraklar ve uygulama yeniden bağlanmayı dener. Bağlanınca kaldığınız yerden devam edebilirsiniz.</p>
+      <details>
+        <summary><span data-tr>Bandım listede görünmüyor</span><span data-en>My treadmill doesn't show up</span></summary>
+        <ul data-tr>
+          <li>Telefonun Bluetooth'u açık olmalı ve StrideFree'ye Bluetooth izni verilmiş olmalı (Ayarlar › StrideFree › Bluetooth).</li>
+          <li>Bandı açın; bandın kendi uygulaması veya başka bir telefon bağlıysa önce onu ayırın.</li>
+          <li>StrideFree, Bluetooth FTMS uyumlu bantlarla ve FitShow modüllü bantlarla çalışır.</li>
+        </ul>
+        <ul data-en>
+          <li>Bluetooth must be on and StrideFree must have Bluetooth permission (Settings › StrideFree › Bluetooth).</li>
+          <li>Turn the treadmill on; disconnect the treadmill maker's app or any other phone first.</li>
+          <li>StrideFree works with Bluetooth FTMS treadmills and treadmills with a FitShow module.</li>
+        </ul>
+      </details>
 
-    <h3>Başka uygulamaya geçince ne olur?</h3>
-    <p>iOS uygulamayı arka planda askıya alabilir. Uygulamaya döndüğünüzde mesafe ve süre bandın kendi sayaçlarından tamamlanır. Programlardaki otomatik hız değişimi için uygulamanın açık olması gerekir.</p>
+      <details>
+        <summary><span data-tr>Bağlantı koptu, ne olur?</span><span data-en>The connection dropped. What happens?</span></summary>
+        <p data-tr>Antrenman otomatik duraklar ve uygulama yeniden bağlanmayı dener. Bağlanınca kaldığınız yerden devam edebilirsiniz.</p>
+        <p data-en>The workout pauses automatically and the app tries to reconnect. Once connected you can continue where you left off.</p>
+      </details>
 
-    <h3>Bandım olmadan deneyebilir miyim?</h3>
-    <p>Evet. Ana ekrandaki <b>Demo</b> düğmesi sanal bir bant bağlar.</p>
+      <details>
+        <summary><span data-tr>Başka uygulamaya geçince ne olur?</span><span data-en>What happens when I switch to another app?</span></summary>
+        <p data-tr>iOS uygulamayı arka planda askıya alabilir. Uygulamaya döndüğünüzde mesafe ve süre bandın kendi sayaçlarından tamamlanır. Programlardaki otomatik hız değişimi için uygulamanın açık olması gerekir.</p>
+        <p data-en>iOS may suspend the app in the background. When you come back, distance and time are caught up from the treadmill's own counters. Automatic speed changes in programs need the app to be open.</p>
+      </details>
 
-    <h3>Verilerim nerede?</h3>
-    <p>Tüm veriler yalnızca telefonunuzda saklanır; hesap veya sunucu yoktur. Profil sekmesinden yedek alabilir, antrenmanları TCX olarak dışa aktarabilirsiniz. Ayrıntılar: <a href="https://github.com/alisenn/stridefree/blob/main/PRIVACY.md">Gizlilik politikası</a>.</p>
-  </section>
+      <details>
+        <summary><span data-tr>Bandım olmadan deneyebilir miyim?</span><span data-en>Can I try it without a treadmill?</span></summary>
+        <p data-tr>Evet. Ana ekrandaki <b>Demo</b> düğmesi sanal bir bant bağlar; tüm özellikleri deneyebilirsiniz.</p>
+        <p data-en>Yes. Tap <b>Demo</b> on the home screen to connect a simulated treadmill and try every feature.</p>
+      </details>
 
-  <section id="en">
-    <h2>Support</h2>
-    <div class="card">
-      <h3>Contact us</h3>
-      <p>For questions, problems or ideas, <a href="https://github.com/alisenn/stridefree/issues/new/choose">open a support request</a>. Include your treadmill brand/model, your phone model and what happened. We usually reply within a few days.</p>
-      <p>Existing requests: <a href="https://github.com/alisenn/stridefree/issues">github.com/alisenn/stridefree/issues</a></p>
-    </div>
+      <details>
+        <summary><span data-tr>Verilerim nerede saklanıyor?</span><span data-en>Where is my data stored?</span></summary>
+        <p data-tr>Tüm veriler yalnızca telefonunuzda saklanır; hesap veya sunucu yoktur. Profil sekmesinden yedek alabilir, antrenmanları TCX olarak dışa aktarabilirsiniz.</p>
+        <p data-en>Everything is stored only on your phone; there are no accounts or servers. You can back up from the Profile tab and export workouts as TCX.</p>
+      </details>
 
-    <h3>My treadmill doesn't show up</h3>
-    <ul>
-      <li>Bluetooth must be on and StrideFree must have Bluetooth permission (Settings › StrideFree › Bluetooth).</li>
-      <li>Turn the treadmill on; disconnect the treadmill maker's app or any other phone first.</li>
-      <li>StrideFree works with Bluetooth FTMS treadmills and treadmills with a FitShow module.</li>
-    </ul>
+      <details>
+        <summary><span data-tr>Verilerimi nasıl silerim?</span><span data-en>How do I delete my data?</span></summary>
+        <p data-tr>Hesap olmadığı için silinecek bir sunucu kaydı da yoktur. Uygulamayı telefonunuzdan sildiğinizde tüm antrenman geçmişiniz ve profiliniz de silinir.</p>
+        <p data-en>There are no accounts, so there is nothing stored on a server. Deleting the app from your phone deletes your whole workout history and profile.</p>
+      </details>
 
-    <h3>The connection dropped</h3>
-    <p>The workout pauses automatically and the app tries to reconnect. Once connected you can continue where you left off.</p>
+      <div class="mailcard">
+        <h3><span data-tr>Doğrudan e-posta</span><span data-en>Direct email</span></h3>
+        <p><span data-tr>Sorununuzu doğrudan e-posta ile iletmek isterseniz bize yazın.</span><span data-en>Prefer email? Write to us directly.</span></p>
+        <a class="btn" href="mailto:canykimy@gmail.com?subject=StrideFree">✉ canykimy@gmail.com</a>
+      </div>
+    </section>
 
-    <h3>What happens when I switch to another app?</h3>
-    <p>iOS may suspend the app in the background. When you come back, distance and time are caught up from the treadmill's own counters. Automatic speed changes in programs need the app to be open.</p>
+    <section>
+      <h2><span data-tr>Destek Formu</span><span data-en>Contact Form</span></h2>
+      <form class="form" id="f">
+        <label for="name"><span data-tr>Adınız</span><span data-en>Your name</span> *</label>
+        <input id="name" required>
+        <label for="cat"><span data-tr>Konu</span><span data-en>Topic</span></label>
+        <select id="cat">
+          <option value="Soru / Question">Soru / Question</option>
+          <option value="Hata / Bug">Hata / Bug</option>
+          <option value="Bant uyumu / Treadmill compatibility">Bant uyumu / Treadmill compatibility</option>
+          <option value="Öneri / Idea">Öneri / Idea</option>
+        </select>
+        <div class="row">
+          <div><label for="phone"><span data-tr>Telefon</span><span data-en>Phone</span></label><input id="phone" placeholder="iPhone 15"></div>
+          <div><label for="tm"><span data-tr>Koşu bandı</span><span data-en>Treadmill</span></label><input id="tm"></div>
+        </div>
+        <label for="msg"><span data-tr>Mesajınız</span><span data-en>Your message</span> *</label>
+        <textarea id="msg" rows="5" required></textarea>
+        <button class="btn" type="submit"><span data-tr>GÖNDER</span><span data-en>SEND</span></button>
+        <p class="note"><span data-tr>Gönder'e basınca e-posta uygulamanız mesaj hazır şekilde açılır.</span><span data-en>Pressing Send opens your email app with the message ready.</span></p>
+      </form>
+    </section>
+  </div>
 
-    <h3>Can I try it without a treadmill?</h3>
-    <p>Yes. Tap <b>Demo</b> on the home screen to connect a simulated treadmill.</p>
-
-    <h3>Where is my data?</h3>
-    <p>Everything is stored only on your phone; there are no accounts or servers. You can back up from the Profile tab and export workouts as TCX. Details: <a href="https://github.com/alisenn/stridefree/blob/main/PRIVACY.md">Privacy policy</a>.</p>
-  </section>
+  <footer>
+    <a href="https://github.com/alisenn/stridefree/blob/main/PRIVACY.md"><span data-tr>Gizlilik politikası</span><span data-en>Privacy policy</span></a> ·
+    <a href="https://github.com/alisenn/stridefree"><span data-tr>Kaynak kod</span><span data-en>Source code</span></a>
+  </footer>
 </main>
+<script>
+  function setLang(l) {
+    document.documentElement.lang = l;
+    document.getElementById('b-tr').classList.toggle('on', l === 'tr');
+    document.getElementById('b-en').classList.toggle('on', l === 'en');
+    if (location.hash !== '#' + l) history.replaceState(null, '', '#' + l);
+  }
+  var h = location.hash.slice(1);
+  if (h === 'en' || h === 'tr') setLang(h);
+  else if (!(navigator.language || '').toLowerCase().startsWith('tr')) setLang('en');
+  document.getElementById('f').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var v = function (id) { return document.getElementById(id).value.trim(); };
+    var body = v('msg') + '\n\n---\n' + v('name') + '\nPhone: ' + v('phone') + '\nTreadmill: ' + v('tm');
+    location.href = 'mailto:canykimy@gmail.com?subject=' + encodeURIComponent('StrideFree – ' + v('cat')) + '&body=' + encodeURIComponent(body);
+  });
+</script>
 </body>
 </html>
